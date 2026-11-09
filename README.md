@@ -82,16 +82,18 @@ Hintergrundmusik „Brandung in Aufruhr“, Flussrauschen (ruhig bzw. kräftig a
 
 ## Technik
 
-Eine einzige `index.html` (Canvas + Vanilla JS, keine Abhängigkeiten außer Google Font „Kalam“), Grafiken in `assets/`, Töne in `assets/snd/`. Kajak-Grafiken sind vorhanden, Kajaks aktuell deaktiviert (`boats:null` in `levelSpec`).
+Eine `index.html` (Canvas + Vanilla JS, keine externen Abhängigkeiten), Grafiken in `assets/`, Töne in `assets/snd/`, Schrift „Kalam“ lokal in `assets/fonts/` (SIL Open Font License, siehe `assets/fonts/OFL.txt`). Kajak-Grafiken sind vorhanden, Kajaks aktuell deaktiviert (`boats:null` in `levelSpec`).
 
-PWA: `manifest.webmanifest`, `sw.js` (Cache + Offline-Betrieb) und `icons/`. Der Service Worker lädt beim Installieren alle Dateien aus der Liste `FILES` vor; Google-Fonts kommen in einen eigenen Cache.
+PWA: `manifest.webmanifest`, `sw.js` (Cache + Offline-Betrieb) und `icons/`. Der Service Worker lädt beim Installieren die Pflichtdateien (`CORE`) und danach alle Dateien aus `FILES` einzeln vor – fehlt eine optionale Datei, wird die neue Version trotzdem installiert (das Spiel hat Ersatzgrafiken bzw. bleibt ohne den Ton).
+
+Spielstände werden beim Laden geprüft (Schema-Version, Typen, Grenzen); ein beschädigter Speicher wird zurückgesetzt und unter `wurfball_save_v2_defekt` aufgehoben. Fehlerprotokoll in der Konsole einschalten: `localStorage.setItem('wasserrettung-debug','1')`.
 
 **Nach jeder Änderung** an Spiel, Grafiken oder Tönen:
 
-1. `VERSION` in `sw.js` und `APP_VERSION` in `index.html` hochzählen (gleicher Wert)
+1. Version in `version.js` hochzählen – das ist die einzige Stelle (Spiel und Service Worker lesen sie beide)
 2. neue oder umbenannte Dateien in die Liste `FILES` in `sw.js` eintragen
 
-Ohne neue `VERSION` sehen bereits installierte Apps die Änderung nicht.
+Ohne neue Version sehen bereits installierte Apps die Änderung nicht.
 
 Lokal testen:
 
@@ -100,6 +102,17 @@ python3 -m http.server 8000
 ```
 
 → http://localhost:8000 (Service Worker braucht `http://`, als `file://` geöffnet läuft nur das Spiel selbst)
+
+## Automatische Tests
+
+Playwright-Tests für die Regressionsfälle aus dem Code-Review liegen in `tests/` (Details in `tests/README.md`):
+
+```
+cd tests
+npm install
+npx playwright install chromium
+npm test
+```
 
 ## Urheberrecht und Lizenz
 

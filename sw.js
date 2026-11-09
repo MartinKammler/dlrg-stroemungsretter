@@ -1,12 +1,15 @@
 // Service Worker für Wasserrettung.
 // Bei jeder Änderung an den Dateien VERSION hochzählen, sonst sehen installierte Apps nichts.
-const VERSION = '1.2.0';
+importScripts('version.js');
+const VERSION = self.APP_VERSION;
 const CACHE = 'wasserrettung-' + VERSION;
-const FONT_CACHE = 'wasserrettung-fonts';
+const OLD_FONT_CACHE = 'wasserrettung-fonts'; // früher Google Fonts – wird beim Aktivieren gelöscht
+// Pflichtdateien: fehlt eine davon, wird die neue Version NICHT installiert (die alte bleibt aktiv).
+const CORE = ['./', 'index.html', 'version.js', 'manifest.webmanifest'];
+// Alle übrigen Dateien werden einzeln geladen; fehlt eine, läuft das Spiel trotzdem (es hat Ersatzgrafiken bzw. bleibt ohne den Ton).
 const FILES = [
-  './',
-  'index.html',
-  'manifest.webmanifest',
+  'assets/fonts/kalam-400.woff2',
+  'assets/fonts/kalam-700.woff2',
   'assets/a01.png',
   'assets/a02.png',
   'assets/a07.png',
@@ -78,7 +81,12 @@ const FILES = [
 // Neue Version: alle Dateien vorab laden. Aktiv wird sie erst, wenn die Seite
 // "SKIP_WAITING" schickt (passiert automatisch im Menü).
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
+  event.waitUntil(caches.open(CACHE).then(async c => {
+    await c.addAll(CORE);
+    const res = await Promise.allSettled(FILES.map(f => c.add(f)));
+    const missing = FILES.filter((f, i) => res[i].status === 'rejected');
+    if (missing.length) console.warn('[sw] nicht im Offline-Speicher:', missing);
+  }));
 });
 
 self.addEventListener('message', event => {
@@ -90,7 +98,7 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
       // eigene alte Versionen und die Caches unter dem fruehen Namen "wurfball-rettung-" aufraeumen
-      .then(keys => Promise.all(keys.filter(k => (k.startsWith('wasserrettung-') || k.startsWith('wurfball-rettung-')) && k !== CACHE && k !== FONT_CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => (k.startsWith('wasserrettung-') || k.startsWith('wurfball-rettung-')) && (k !== CACHE || k === OLD_FONT_CACHE)).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -100,15 +108,6 @@ self.addEventListener('fetch', event => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // Schrift von Google Fonts: aus dem Cache, im Hintergrund auffrischen
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-    event.respondWith(caches.open(FONT_CACHE).then(async c => {
-      const hit = await c.match(req);
-      const net = fetch(req).then(r => { if (r.ok || r.type === 'opaque') c.put(req, r.clone()); return r; }).catch(() => hit);
-      return hit || net;
-    }));
-    return;
-  }
   if (url.origin !== location.origin) return;
 
   // Seite selbst: zuerst aus dem Netz (damit Updates schnell ankommen), offline aus dem Cache

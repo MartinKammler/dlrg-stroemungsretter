@@ -13,8 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<script src="version.js"></script>
 <style>
 html,body{margin:0;height:100%;background:#0b2a3a;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
 #c{display:block;width:100vw;height:100vh;cursor:crosshair}
@@ -77,6 +76,9 @@ table.hs tr.me td{background:#fff3c4;font-weight:700}
 .shop .it{display:flex;align-items:center;gap:8px;font-size:14px}.shop .it small{display:block;color:#567;font-size:12px;font-weight:400}
 .shop .btn{padding:6px 10px;font-size:13px}
 .stars{color:#e0a800;font-weight:800}
+/* Schrift lokal (S4) – Kalam, SIL Open Font License, siehe assets/fonts/OFL.txt */
+@font-face{font-family:Kalam;font-weight:400;font-display:swap;src:url(assets/fonts/kalam-400.woff2) format('woff2')}
+@font-face{font-family:Kalam;font-weight:700;font-display:swap;src:url(assets/fonts/kalam-700.woff2) format('woff2')}
 /* ===== Einsatz-Kladde ===== */
 .overlay{background:rgba(5,25,40,.62)}
 .card{position:relative;max-width:480px;width:calc(100% - 20px);max-height:calc(100% - 24px);box-sizing:border-box;display:flex;flex-direction:column;overflow:visible;
@@ -243,14 +245,47 @@ const fx={
 
 // ---------- Speicherstand ----------
 const SAVE_KEY='wurfball_save_v2';
-const S={mode:'normal',maxCleared:0,points:0,total:0,skills:{aim:0,line:0,stand:0},hs:[],stars:0,inv:{bar:0,ring:0,whistle:0}};
-function load(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d)Object.assign(S,d,{skills:Object.assign({aim:0,line:0,stand:0},d.skills),inv:Object.assign({bar:0,ring:0,whistle:0},d.inv),stars:d.stars||0})}catch(e){}}
+const S={schema:2,current:'',players:{},mode:'normal',maxCleared:0,points:0,total:0,skills:{aim:0,line:0,stand:0},hs:[],stars:0,inv:{bar:0,ring:0,whistle:0}};
+// ---------- Fehlerprotokoll (T4) ----------
+let DEBUG=false;try{DEBUG=localStorage.getItem('wasserrettung-debug')==='1'}catch(e){}
+function logError(ctx,err){if(DEBUG)console.error('['+ctx+']',err)}
+// ---------- Spielstand laden & prüfen (S2) ----------
+const SCHEMA=2; // v1 = alte Stände ohne Schema, v2 = geprüfte Struktur
+const int=(v,min,max,def)=>{v=Math.floor(Number(v));return Number.isFinite(v)?Math.max(min,Math.min(max,v)):def};
+const txt=(v,max)=>typeof v==='string'?v.replace(/[\u0000-\u001f]/g,'').trim().slice(0,max):'';
+function cleanRun(r){
+  r=r&&typeof r==='object'?r:{};const sk=r.skills&&typeof r.skills==='object'?r.skills:{},iv=r.inv&&typeof r.inv==='object'?r.inv:{};
+  return{mode:MODES[r.mode]?r.mode:'normal',maxCleared:int(r.maxCleared,0,MAXL-1,0),points:int(r.points,0,999,0),total:int(r.total,0,1e7,0),
+    skills:{aim:int(sk.aim,0,5,0),line:int(sk.line,0,5,0),stand:int(sk.stand,0,5,0)},stars:int(r.stars,0,999,0),
+    inv:{bar:int(iv.bar,0,99,0),ring:int(iv.ring,0,99,0),whistle:int(iv.whistle,0,99,0)}};
+}
+function cleanSave(d){
+  d=d&&typeof d==='object'&&!Array.isArray(d)?d:{};
+  const out=cleanRun(d);out.schema=SCHEMA;out.current=txt(d.current,16);
+  out.players={};if(d.players&&typeof d.players==='object')for(const p of Object.values(d.players)){const n=txt(p&&p.name,16);if(n)out.players[pkey(n)]=Object.assign(cleanRun(p),{name:n})}
+  out.hs=(Array.isArray(d.hs)?d.hs:[]).map(e=>e&&typeof e==='object'?{name:txt(e.name,16),mode:MODES[e.mode]?e.mode:'normal',level:int(e.level,1,MAXL,1),score:int(e.score,0,1e7,0),done:e.done===true,date:txt(e.date,20),id:int(e.id,0,9e15,0)||Math.floor(Math.random()*1e9)}:null).filter(e=>e&&e.name);
+  // Bestenliste je Modus auf 5 Einträge begrenzen
+  const keep=[];for(const m of Object.keys(MODES))keep.push(...out.hs.filter(x=>x.mode===m).sort((a,b)=>((b.done?1000:0)+b.level)-((a.done?1000:0)+a.level)||b.score-a.score).slice(0,5));out.hs=keep;
+  if(out.current&&out.players[pkey(out.current)])Object.assign(out,cleanRun(out.players[pkey(out.current)]));
+  return out;
+}
+function load(){
+  let raw=null;try{raw=localStorage.getItem(SAVE_KEY)}catch(e){logError('load',e);storageWarn();return}
+  if(!raw)return;
+  let d;try{d=JSON.parse(raw)}catch(e){
+    logError('load',e);try{localStorage.setItem(SAVE_KEY+'_defekt',raw)}catch(_){}
+    setTimeout(()=>toast('Der gespeicherte Spielstand war beschädigt und wurde zurückgesetzt.',6000),300);return;
+  }
+  Object.assign(S,cleanSave(d));
+}
+let storageWarned=false;
+function storageWarn(){if(storageWarned)return;storageWarned=true;setTimeout(()=>toast('Der Spielstand kann nicht gespeichert werden. Prüfe, ob dein Browser die lokale Speicherung erlaubt (z. B. kein privates Fenster).',7000),300)}
 const RUN_KEYS=['maxCleared','points','total','skills','stars','inv','mode'];
 const pkey=n=>String(n||'').trim().toLowerCase();
 function snapRun(){const r={};for(const k of RUN_KEYS)if(S[k]!==undefined)r[k]=JSON.parse(JSON.stringify(S[k]));return r}
 function save(){
   S.players=S.players||{};if(S.current)S.players[pkey(S.current)]=Object.assign(snapRun(),{name:S.current});
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}
+  S.schema=SCHEMA;try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){logError('save',e);storageWarn()}
 }
 // Bestenliste: ein Eintrag pro Name, bester Stand zählt
 const hsKey=e=>(e.done?1000:0)+e.level;
@@ -289,10 +324,23 @@ load();
 const G={bgi:0,state:'menu',L:1,spec:levelSpec(1),t:0,flow:0,score:0,saved:0,lost:0,lives:3,throws:0,hits:0,streak:0,best:0,doubles:0,cuts:0,spawnT:0,boatT:0,endT:0,victims:[],boats:[],lostBalls:[],pops:[],ripples:[]};
 const R={x:0};
 const B={state:'held',x:0,y:0,sx:0,sy:0,tx:0,ty:0,t:0,T:1,att:[],h:0};
-let aim=null;const keys={l:false,r:false};let parts=[];
+let aim=null;let parts=[];
 
+// Größenänderung/Drehen (T1): alle Spielobjekte proportional mitnehmen, damit Positionen, Trefferzonen und Darstellung zusammenpassen
+function rescaleWorld(sx,sy){
+  const P=(o,...k)=>{if(!o)return;for(const key of k){if(typeof o[key]!=='number')continue;o[key]*=/x$/i.test(key)?sx:sy}};
+  for(const v of G.victims){P(v,'x','y','y0');v.ox*=sx;v.oy*=sy}
+  P(B,'x','y','sx','sy','tx','ty');
+  for(const r of G.rings||[])P(r,'x','y','sx','sy','tx','ty');
+  if(G.ringFlash)P(G.ringFlash,'x','y');
+  if(G.helper)P(G.helper,'x','bx','by','sx','sy');
+  for(const o of G.boats)P(o,'x','y');for(const o of G.lostBalls)P(o,'x','y');for(const o of G.ripples)P(o,'x','y');for(const o of G.pops)P(o,'x','y');
+  aim=null; // laufendes Zielen abbrechen – der Finger zeigt nach dem Drehen woanders hin
+}
 function resize(){
+  const oW=W,oH=H;
   DPR=Math.min(window.devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  if(oW&&oH&&(oW!==W||oH!==H)&&typeof G!=='undefined'&&G.victims)rescaleWorld(W/oW,H/oH);
   cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);
   riverTop=H*BG_EDGE[0];riverBot=H*BG_EDGE[1];bankY=H*.985;RH=riverBot-riverTop;buildBg();
   R.x=clamp(R.x||W/2,W*.06,W*.94);
@@ -361,8 +409,8 @@ function aimCalc(dx,dy){
 
 // ---------- Sound ----------
 const SND={ctx:null,buf:{},music:true,fx:true,mNode:null,aNode:null,aKey:null};
-try{const p=JSON.parse(localStorage.getItem('wurfball_snd')||'{}');if(p.music===false)SND.music=false;if(p.fx===false)SND.fx=false}catch(e){}
-function sndSave(){try{localStorage.setItem('wurfball_snd',JSON.stringify({music:SND.music,fx:SND.fx}))}catch(e){}}
+try{const p=JSON.parse(localStorage.getItem('wurfball_snd')||'{}');if(p.music===false)SND.music=false;if(p.fx===false)SND.fx=false}catch(e){logError('snd-load',e)}
+function sndSave(){try{localStorage.setItem('wurfball_snd',JSON.stringify({music:SND.music,fx:SND.fx}))}catch(e){logError('snd-save',e)}}
 function sndInit(){
   if(SND.ctx){if(SND.ctx.state==='suspended'&&!paused)SND.ctx.resume().catch(()=>{});return}
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
@@ -370,7 +418,7 @@ function sndInit(){
   const mk=v=>{const g=SND.ctx.createGain();g.gain.value=v;g.connect(SND.ctx.destination);return g};
   SND.mG=mk(0);SND.aG=mk(0);SND.fG=mk(.9);SND.duck=0;
   for(const n of['music','river1','river2','splash','whistle','eat'])
-    fetch('assets/snd/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>SND.ctx.decodeAudioData(b,ok,no))).then(d=>{SND.buf[n]=d;sndUpdate()}).catch(()=>{});
+    fetch('assets/snd/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>SND.ctx.decodeAudioData(b,ok,no))).then(d=>{SND.buf[n]=d;sndUpdate()}).catch(e=>logError('audio '+n,e)); // fehlende Datei: Spiel läuft ohne diesen Ton weiter
 }
 function loopNode(n,dest,vol){const s=SND.ctx.createBufferSource();s.buffer=SND.buf[n];s.loop=true;const g=SND.ctx.createGain(),t=SND.ctx.currentTime;
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+1.5);s.connect(g);g.connect(dest);s.start();return{s,g}}
@@ -446,6 +494,18 @@ function personDist(v,x,y){
   const dx=Math.max(0,Math.abs(x-v.x)-reach),dy=Math.max(0,top-y,y-bot),dRect=Math.hypot(dx,dy);
   const hr=s*hd[0]/2,hcy=v.y+s*(g.neckY+4)-s*hd[1]+hr,dHead=Math.max(0,Math.hypot(x-v.x,y-hcy)-hr);
   return Math.min(dRect,dHead);
+}
+// Warum daneben? (U2) – aus der Lage der nächsten Person zum Ball bei der Landung berechnet
+function missInfo(){
+  let best=null,bd=1e9;for(const v of G.victims){if(v.state!=='swim')continue;const d=personDist(v,B.x,B.y);if(d<bd){bd=d;best=v}}
+  if(!best)return null;return{d:bd,dx:best.x-B.x,dy:best.y-B.y};
+}
+function missText(){
+  const m=B.miss,cr=fx.catchR();if(!m||m.d>cr*6)return 'Daneben';
+  if(m.d<cr*1.6)return 'Knapp verfehlt!';
+  const ax=Math.abs(m.dx),ay=Math.abs(m.dy);
+  if(ax>=ay)return m.dx>0?'Zu spät – weiter vorhalten!':'Zu weit vorgehalten';
+  return m.dy>0?'Zu weit geworfen':'Zu kurz geworfen'; // dy>0: Person liegt näher am eigenen Ufer als der Ball
 }
 function tryGrab(){
   const cr=fx.catchR();let best=null,bd=1e9;
@@ -799,11 +859,11 @@ function update(dt){
     if(p>=1){B.h=0;
       if(G.boats.some(bt=>inBoat(bt,B.x,B.y,ballR()))){G.streak=0;pop(B.x,B.y-14,'Aufs Kajak!','#ffb3b3');startPull(false);B.noCut=true}
       else if(B.y<topAt(B.x)+2||B.y>botAt(B.x)-2){G.streak=0;pop(B.x,B.y-14,B.y<topAt(B.x)?'Zu weit!':'Zu kurz!','#ffb3b3');startPull(false)}
-      else{splashFx({x:B.x,y:B.y,t:0});B.state='floating';B.t=0;B.noCut=false;B.f=fracAt(B.x,B.y);tryGrab()}
+      else{splashFx({x:B.x,y:B.y,t:0});B.state='floating';B.t=0;B.noCut=false;B.f=fracAt(B.x,B.y);B.miss=missInfo();tryGrab()}
     }
   }else if(B.state==='floating'){
     B.t+=dt;B.x+=flowAt(B.x,B.f)*fx.drift()*dt;B.y=yAt(B.x,B.f);
-    if(!tryGrab()&&(B.t>fx.floatWin()||B.x>W-6)){G.streak=0;pop(B.x,B.y-14,'Daneben','#ffb3b3');startPull(false)}
+    if(!tryGrab()&&(B.t>fx.floatWin()||B.x>W-6)){G.streak=0;pop(B.x,B.y-14,missText(),'#ffb3b3');startPull(false)}
   }else if(B.state==='replacing'){
     B.t+=dt;if(B.t>=B.T)B.state='held';
   }else if(B.state==='pulling'||B.state==='retrieving'){
@@ -1105,15 +1165,16 @@ cv.addEventListener('pointerdown',e=>{if(G.state!=='play'||paused)return;aim={sx
 cv.addEventListener('pointermove',e=>{if(aim&&e.pointerId===aim.id){aim.cx=e.clientX;aim.cy=e.clientY}});
 cv.addEventListener('pointerup',e=>{if(!aim||e.pointerId!==aim.id)return;const a=aimFromPointer(aim);aim=null;if(G.state==='play'){if(G.ringArmed)throwRing(a);else throwBall(a)}});
 cv.addEventListener('pointercancel',()=>{aim=null});
-addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='arrowleft'||k==='a')keys.l=true;if(k==='arrowright'||k==='d')keys.r=true;if((k==='escape'||k==='p')&&G.state==='play')setPause(!paused);if(!e.repeat&&!paused&&G.state==='play'){if(k==='1')useGoodie('bar');if(k==='2')useGoodie('ring');if(k==='3')useGoodie('whistle')}});
-addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(k==='arrowleft'||k==='a')keys.l=false;if(k==='arrowright'||k==='d')keys.r=false});
-function setPause(p){paused=p;aim=null;keys.l=keys.r=false;show('pov',p);if(SND.ctx){if(p)SND.ctx.suspend().catch(()=>{});else SND.ctx.resume().catch(()=>{})}}
+addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();if((k==='escape'||k==='p')&&G.state==='play'){e.preventDefault();setPause(!paused)}if(['1','2','3'].includes(k)&&G.state==='play')e.preventDefault();if(!e.repeat&&!paused&&G.state==='play'){if(k==='1')useGoodie('bar');if(k==='2')useGoodie('ring');if(k==='3')useGoodie('whistle')}});
+function setPause(p){paused=p;aim=null;show('pov',p);if(SND.ctx){if(p)SND.ctx.suspend().catch(()=>{});else SND.ctx.resume().catch(()=>{})}}
 $('pause').onclick=()=>setPause(true);
 for(const[id,el]of[['bar','gBar'],['ring','gRing'],['whistle','gWhistle']])$(el).addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();useGoodie(id)});
 $('resume').onclick=()=>setPause(false);
 $('quit').onclick=()=>{setPause(false);toMenu()};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.state==='play')setPause(true)});
 
+// Schnittstelle für die automatischen Tests (tests/) – nur mit ?e2e in der Adresse
+if(/[?&]e2e\b/.test(location.search))window.__WR={G,B,R,S,SND,fx,levelSpec,useGoodie,throwBall,aimCalc,aimFromPointer,hand,fracAt,topAt,botAt,personDist,missText,cleanSave,startLevel,toMenu,get paused(){return paused}};
 // Testhilfe: #level-7 startet direkt Level 7
 const m=/^#level-(\d+)(-held|-goodies)?$/.exec(location.hash);
 if(m&&m[2]==='-held')S.skills={aim:5,line:5,stand:5}; // Test: #level-12-held
@@ -1122,16 +1183,16 @@ if(m)S.points=Math.max(S.points||0,Math.round(1.5*(Math.max(1,+m[1])-1))); // Te
 if(m)startLevel(Math.max(1,+m[1]));else toMenu();
 
 // ---------- Version und automatisches Update (PWA) ----------
-const APP_VERSION='1.2.0';
+const APP_VERSION=self.APP_VERSION||'?'; // einzige Quelle: version.js (wird auch vom Service Worker geladen)
 $('appVersion').textContent='Version '+APP_VERSION;
 function toast(msg,ms=3500){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,ms)}
 try{if(sessionStorage.getItem('wasserrettung-updated')){sessionStorage.removeItem('wasserrettung-updated');toast('Aktualisiert auf Version '+APP_VERSION)}}catch(e){}
-let waitingSW=null,reloading=false;
+let waitingSW=null,reloading=false,updateRequested=false;
 function applyUpdate(){
   // nur im Menü neu laden, damit kein laufendes Level und keine Namenseingabe verloren geht
   if(!waitingSW||G.state!=='menu')return;
   try{sessionStorage.setItem('wasserrettung-updated','1')}catch(e){}
-  waitingSW.postMessage({type:'SKIP_WAITING'});waitingSW=null;
+  updateRequested=true;waitingSW.postMessage({type:'SKIP_WAITING'});waitingSW=null;
 }
 if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol)){
   navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
@@ -1144,8 +1205,9 @@ if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol)){
     // beim Zurückkehren zur App und alle 30 Minuten nach Updates schauen
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{})});
     setInterval(()=>reg.update().catch(()=>{}),30*60*1000);
-  }).catch(()=>{});
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!reloading){reloading=true;location.reload()}});
+  }).catch(e=>logError('sw-register',e));
+  // nur nach einem selbst angestoßenen Update neu laden – nicht, wenn sich der Service Worker beim ersten Besuch installiert
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(updateRequested&&!reloading){reloading=true;location.reload()}});
   setInterval(applyUpdate,1000);
 }
 })();

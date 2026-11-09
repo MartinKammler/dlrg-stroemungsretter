@@ -2,3 +2,6 @@
 Thumbs.db
 *.bak
 v*.html
+tests/node_modules/
+tests/test-results/
+tests/playwright-report/
