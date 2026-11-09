@@ -845,7 +845,7 @@ function update(dt){
       if(v.x>W+headR()*3){v.state='gone';G.lives--;G.lost++;G.streak=0;pop(W-70,v.y,'Abgetrieben!','#ff8a8a');
         if(G.lives<=0){levelFailed();return}}
     }else if(v.state==='grabbed'){
-      const k=Math.min(1,dt*10);
+      v.attT=(v.attT||0)+dt;const k=v.attT<.2?Math.min(1,dt*12):1;
       if(swOK()){const o=swHandOff(v,7,1),tp=v.rt!=null?ropePoint(v.rt):{x:B.x,y:B.y};v.x=lerp(v.x,tp.x-o.x,k);v.y=lerp(v.y,tp.y-o.y,k)}
       else if(v.rt!=null){const rp=ropePoint(v.rt);v.x=lerp(v.x,rp.x+headR()*.9,k);v.y=lerp(v.y,rp.y+headR()*.3,k)}
       else{v.x=lerp(v.x,B.x+v.ox,k);v.y=lerp(v.y,B.y+v.oy,k)}
@@ -882,6 +882,10 @@ function update(dt){
       B.state='held';
     }
   }
+  // Gerettete hängen fest am Ball bzw. an der Leine – nach der Ballbewegung dieses Frames nachziehen, damit nichts hinterherhinkt
+  for(const v of B.att){if(v.state!=='grabbed'||(v.attT||0)<.2)continue;
+    if(swOK()){const o=swHandOff(v,7,1),tp=v.rt!=null?ropePoint(v.rt):{x:B.x,y:B.y};v.x=tp.x-o.x;v.y=tp.y-o.y}
+    else if(v.rt!=null){const rp=ropePoint(v.rt);v.x=rp.x+headR()*.9;v.y=rp.y+headR()*.3}else{v.x=B.x+v.ox;v.y=B.y+v.oy}}
   checkCut();
   if(G.saved>=sp.target){G.endT+=dt;if(G.endT>1.0)levelDone()}
 }
