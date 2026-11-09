@@ -225,8 +225,8 @@ const SKILLS=[
  {id:'line',name:'Leinentraining',max:5,desc:n=>n?'Einholen '+n*10+' % schneller (kürzerer Cooldown)':'Schnelleres Einholen = kürzerer Cooldown'},
  {id:'stand',name:'Standfestigkeit',max:5,desc:n=>[
     'Ball hält länger gegen die Strömung · ab Stufe 3 bringt die Leine mehrere Personen auf einmal',
-    'Ball hält 0,35 s länger · Stufe 3: 2 Personen pro Wurf',
-    'Ball hält 0,70 s länger · Stufe 3: 2 Personen pro Wurf',
+    'Ball hält 0,25 s länger · Stufe 3: 2 Personen pro Wurf',
+    'Ball hält 0,50 s länger · Stufe 3: 2 Personen pro Wurf',
     'Leine nimmt eine 2. Person mit · Stufe 5: 3 Personen',
     '2 Personen pro Wurf, größerer Fangbereich an der Leine · Stufe 5: 3 Personen',
     'Bis zu 3 Personen pro Wurf, großer Fangbereich an der Leine'][n]}
@@ -235,8 +235,8 @@ const COSTS=[0,1,2,3,3,4];const costOf=stage=>COSTS[stage]||4; // Stufen kosten 
 const fx={
   catchR:()=>G.spec.catchR*(1+.15*S.skills.aim)*RH,
   pullT:()=>2.6*(1-.1*S.skills.line),
-  retrT:()=>1.8*(1-.1*S.skills.line),
-  floatWin:()=>1.0+.35*Math.min(2,S.skills.stand),
+  retrT:()=>1.4*(1-.1*S.skills.line),
+  floatWin:()=>.8+.25*Math.min(2,S.skills.stand),
   drift:()=>.55-.12*Math.min(2,S.skills.stand),
   double:()=>S.skills.stand>=3,
   maxRope:()=>S.skills.stand>=5?3:S.skills.stand>=3?2:1,
@@ -506,6 +506,18 @@ function missText(){
   const ax=Math.abs(m.dx),ay=Math.abs(m.dy);
   if(ax>=ay)return m.dx>0?'Zu spät – weiter vorhalten!':'Zu weit vorgehalten';
   return m.dy>0?'Zu weit geworfen':'Zu kurz geworfen'; // dy>0: Person liegt näher am eigenen Ufer als der Ball
+}
+// Kann in der Liegezeit überhaupt noch jemand den Ball erreichen? Sonst sofort einholen (kein langes Warten nach Fehlwürfen)
+function canReachBall(){
+  const cr=fx.catchR(),win=fx.floatWin(),bv=flowAt(B.x,B.f)*fx.drift();
+  for(const v of G.victims){
+    if(v.state!=='swim')continue;
+    if(personDist(v,B.x,B.y)<cr*1.5)return true;
+    const dy=Math.abs(v.y-B.y);if(dy>cr*2.5)continue;           // andere Bahn
+    const reach=swOK()?swHandOff(v,3,1).x:0,rel=flowAt(v.x,v.f)*v.sf-bv,gap=B.x-v.x-reach-cr; // holt die Person (mit Armreichweite) den Ball ein?
+    if(gap>0&&rel>0&&gap/rel<win)return true;
+  }
+  return false;
 }
 function tryGrab(){
   const cr=fx.catchR();let best=null,bd=1e9;
@@ -859,11 +871,11 @@ function update(dt){
     if(p>=1){B.h=0;
       if(G.boats.some(bt=>inBoat(bt,B.x,B.y,ballR()))){G.streak=0;pop(B.x,B.y-14,'Aufs Kajak!','#ffb3b3');startPull(false);B.noCut=true}
       else if(B.y<topAt(B.x)+2||B.y>botAt(B.x)-2){G.streak=0;pop(B.x,B.y-14,B.y<topAt(B.x)?'Zu weit!':'Zu kurz!','#ffb3b3');startPull(false)}
-      else{splashFx({x:B.x,y:B.y,t:0});B.state='floating';B.t=0;B.noCut=false;B.f=fracAt(B.x,B.y);B.miss=missInfo();tryGrab()}
+      else{splashFx({x:B.x,y:B.y,t:0});B.state='floating';B.t=0;B.noCut=false;B.f=fracAt(B.x,B.y);B.miss=missInfo();B.hope=canReachBall();tryGrab()}
     }
   }else if(B.state==='floating'){
     B.t+=dt;B.x+=flowAt(B.x,B.f)*fx.drift()*dt;B.y=yAt(B.x,B.f);
-    if(!tryGrab()&&(B.t>fx.floatWin()||B.x>W-6)){G.streak=0;pop(B.x,B.y-14,missText(),'#ffb3b3');startPull(false)}
+    if(!tryGrab()&&(B.t>fx.floatWin()||B.x>W-6||(B.t>.3&&!B.hope))){G.streak=0;pop(B.x,B.y-14,missText(),'#ffb3b3');startPull(false)}
   }else if(B.state==='replacing'){
     B.t+=dt;if(B.t>=B.T)B.state='held';
   }else if(B.state==='pulling'||B.state==='retrieving'){

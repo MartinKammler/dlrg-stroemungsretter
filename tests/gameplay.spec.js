@@ -72,3 +72,21 @@ test('R11 30 Levelwechsel ohne wachsende Listen', async ({ page }) => {
   expect(await page.evaluate(() => window.__WR.G.state)).toBe('won');
   await expect(page.locator('#overcard')).toContainText('Alle 30 Level geschafft');
 });
+
+test('Fehlwurf ohne Chance → Ball wird sofort eingeholt', async ({ page }) => {
+  await placeSwimmer(page, 200, 0.8);                       // Person weit weg in anderer Bahn
+  await page.evaluate(() => { const W = window.__WR, B = W.B, x = 700, f = 0.25, y = W.topAt(x) + (W.botAt(x) - W.topAt(x)) * f;
+    B.state = 'flying'; B.sx = B.x = W.hand().x; B.sy = B.y = W.hand().y; B.tx = x; B.ty = y; B.t = 0; B.T = 0.05; });
+  await page.waitForFunction(() => window.__WR.B.state === 'retrieving', null, { timeout: 2000 });
+  const t = await page.evaluate(() => window.__WR.G.t);
+  expect(t).toBeGreaterThan(0);
+});
+
+test('Ball vor einer Person in ihrer Bahn → wartet, Person greift zu', async ({ page }) => {
+  const x = 520, f = 0.5;
+  await placeSwimmer(page, x - 65, f, { sf: 1 });           // Person treibt in ihrer Bahn auf den Ball zu
+  await page.evaluate(([x, f]) => { const W = window.__WR, B = W.B, y = W.topAt(x) + (W.botAt(x) - W.topAt(x)) * f;
+    B.state = 'flying'; B.sx = B.x = W.hand().x; B.sy = B.y = W.hand().y; B.tx = x; B.ty = y; B.t = 0; B.T = 0.05; }, [x, f]);
+  await page.waitForFunction(() => ['pulling', 'retrieving'].includes(window.__WR.B.state), null, { timeout: 4000 });
+  expect(await page.evaluate(() => window.__WR.B.state)).toBe('pulling');
+});
