@@ -39,6 +39,16 @@ Die App sucht beim Öffnen und alle 30 Minuten nach einer neuen Version. Ist ein
 - **Scheitern:** 3 Personen abgetrieben → Level wiederholen oder Einsatz beenden.
 - **Spieler:** Name eingeben, Fortschritt wird pro Name gespeichert. Beim Beenden oder Spielerwechsel kommt der Stand in die Bestenliste (Top 5, lokal im Browser).
 
+## Schwierigkeitsgrade
+
+| Modus | Personen pro Level | Strömung (Zeit über den Bildschirm, Level 1 → 30) |
+|---|---|---|
+| Einfach | 3 … max. 8 | 12 s → 6 s |
+| Normal | 3 … max. 10 | 12 s → 4,3 s |
+| Profi | 4 … 10 (ab Level 8) | 9 s → 3,2 s |
+
+Jeder Modus hat seine eigene Bestenliste. Pro Spieler läuft ein Einsatz; wer den Modus wechselt, beendet den laufenden Einsatz (er kommt in die Bestenliste).
+
 ## Training (Punkte nach jedem Level, Stufe k kostet k Punkte)
 
 | Training | Stufen | Wirkung |
@@ -53,8 +63,8 @@ Sterne gibt es für: über 80 % Trefferquote (1 ★), 100 % Trefferquote (2 ★)
 
 | Goodie | Preis | Wirkung |
 |---|---|---|
-| Powerriegel | 3 ★ | 20 s lang Werfen und Einholen doppelt so schnell |
-| Rettungsring | 5 ★ | automatischer Wurf zur gefährdetsten Person, trifft immer |
+| Powerriegel | 3 ★ | 10 s lang Werfen und Einholen doppelt so schnell |
+| Rettungsring | 5 ★ | automatischer Wurf zur gefährdetsten Person, trifft immer; großer Fangbereich – mit Zieltraining 3 halten sich 2, mit Stufe 5 bis zu 3 Personen fest |
 | Trillerpfeife | 10 ★ | 10 s lang rettet ein Helfer automatisch |
 
 Im Spiel per Knopf oder Taste 1 / 2 / 3.

@@ -1,6 +1,6 @@
 // Service Worker für Wurfball-Rettung.
 // Bei jeder Änderung an den Dateien VERSION hochzählen, sonst sehen installierte Apps nichts.
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const CACHE = 'wurfball-rettung-' + VERSION;
 const FONT_CACHE = 'wurfball-rettung-fonts';
 const FILES = [

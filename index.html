@@ -55,12 +55,22 @@ table.hs th{text-align:left;font-size:12px;color:#567;font-weight:600;border-bot
 table.hs td{padding:4px;border-bottom:1px solid #eef2f4}
 table.hs tr.me td{background:#fff3c4;font-weight:700}
 .hsf{display:flex;gap:8px;margin:6px 0}
-.plist{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid #c8102e;background:#fff;color:#c8102e;border-radius:16px;padding:4px 10px;font-size:13px;cursor:pointer}.chip.on{background:#c8102e;color:#fff}.hsf input{flex:1;font-size:16px;padding:9px 10px;border:2px solid #c8102e;border-radius:10px;min-width:0}
+.plist{display:flex;flex-wrap:wrap;gap:6px}
+.modesel{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.modesel button{border:2px solid #1f5fa8;background:#fff;color:#1f5fa8;border-radius:10px;padding:6px 4px;cursor:pointer;font:800 14px system-ui,sans-serif;line-height:1.15}
+.modesel button small{display:block;font-weight:500;font-size:10.5px;color:#456}
+.modesel button.on{background:#1f5fa8;color:#fff}.modesel button.on small{color:#dbe8f8}
+.modesel button:disabled{opacity:.4;cursor:default}
+.modesel .lock{grid-column:1/-1;font-size:12px;color:#456}.chip{border:1px solid #c8102e;background:#fff;color:#c8102e;border-radius:16px;padding:4px 10px;font-size:13px;cursor:pointer}.chip.on{background:#c8102e;color:#fff}.hsf input{flex:1;font-size:16px;padding:9px 10px;border:2px solid #c8102e;border-radius:10px;min-width:0}
 .hero{background:#fff3c4;border-radius:10px;padding:8px 10px;font-size:13.5px}
 #goodies{position:fixed;right:10px;bottom:12px;z-index:3;display:flex;flex-direction:column;gap:8px}
-.gd{display:flex;align-items:center;gap:6px;background:#fff;color:#1a2a33;border:3px solid #c8102e;border-radius:40px;padding:5px 12px 5px 7px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);touch-action:manipulation}
-.gd .gc{background:#c8102e;color:#fff;border-radius:12px;padding:1px 7px;font-size:12px}
-.gd.on{background:#fff3c4}
+.gd{position:relative;display:block;background:none;border:none;padding:0;width:52px;height:52px;cursor:pointer;touch-action:manipulation;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
+.gd img{width:52px!important;height:52px!important;object-fit:contain}
+.gd .gl{display:none}
+.gd .gc{position:absolute;right:-4px;bottom:-2px;background:#c8102e;color:#fff;border:2px solid #fff;border-radius:12px;padding:0 6px;font:800 12px/18px system-ui,sans-serif;min-width:12px;text-align:center}
+.gd.on img{animation:pulse .7s infinite alternate}
+.gd.on .gc{background:#2e8b4a}
+@keyframes pulse{to{transform:scale(1.12)}}
 .shop{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;border:1px solid #dde4e8;border-radius:10px;padding:10px 12px;margin-top:8px}
 .shop .it{display:flex;align-items:center;gap:8px;font-size:14px}.shop .it small{display:block;color:#567;font-size:12px;font-weight:400}
 .shop .btn{padding:6px 10px;font-size:13px}
@@ -103,11 +113,12 @@ table.hs tr.me td{background:#fff3c4;font-weight:700}
 
 <div class="overlay" id="menu">
   <div class="card"><div class="cin">
-    <div class="kl-row"><div><span class="kl-stamp">Einsatz-Kladde</span><h1>Wurfball-Rettung</h1><div class="kl-sub">Strömungsrettung · Übungsprotokoll</div></div></div>
+    <div class="kl-row"><div><span class="kl-stamp">Einsatz-Kladde</span><h1>Wasserrettung</h1><div class="kl-sub">Strömungsrettung · Übungsprotokoll</div></div></div>
     <section class="sec sec-blue"><div class="sec-t">Retter*in</div>
       <div class="col" style="margin-top:6px">
         <form id="pf" class="hsf" style="margin:0"><input id="pname" maxlength="16" placeholder="Wer spielt? Name eingeben" autocomplete="off"></form>
         <div id="plist" class="plist"></div>
+        <div id="modesel" class="modesel"></div>
         <button class="btn primary" id="cont">Weiter</button>
         <button class="btn" id="newg">Neuer Einsatz</button>
       </div>
@@ -115,10 +126,11 @@ table.hs tr.me td{background:#fff3c4;font-weight:700}
     <details class="sec sec-gray"><summary>So geht's</summary>
       <p>Im Fluss treiben Personen vorbei und rufen um Hilfe. Wirf den Rettungsball an der Leine so, dass sie ihn greifen können – danach wird automatisch an Land gezogen.</p>
       <p><b>Zielen:</b> auf die Stelle im Wasser zeigen, wo der Ball landen soll (am Handy erscheint der Zielkreis über dem Finger), schieben zum Feinjustieren, loslassen = Wurf. Zurück aufs eigene Ufer ziehen = abbrechen. Vorhalten nicht vergessen!</p>
+      <p><b>Schwierigkeit:</b> Einfach (max. 8 Personen, Strömung wird höchstens so schnell, dass eine Person 6 s über den Bildschirm braucht), Normal (max. 10 Personen) oder Profi (10 Personen, schnelles Wasser). Jeder Modus hat seine eigene Bestenliste.</p>
       <p><b>Level:</b> 30 Level bis zum Verdienstorden – mit jedem Level fließt das Wasser schneller. Treiben 3 Personen ab, kannst du das Level wiederholen oder den Einsatz beenden. Dein Fortschritt wird unter deinem Namen gespeichert und kommt beim Beenden oder Spielerwechsel in die Bestenliste.</p>
-      <p><b>Training & Sterne:</b> Nach jedem Level gibt es Trainingspunkte. Über 80 % Trefferquote bringt einen Stern, 100 % zwei, jede Doppel- oder Dreifachrettung einen bzw. zwei. Ist das Training voll, werden Trainingspunkte zu Sternen. Sterne tauschst du gegen Powerriegel (3 ★), Rettungsring (5 ★) oder Trillerpfeife (10 ★). Im Spiel einsetzen per Knopf oder Taste 1/2/3.</p>
+      <p><b>Training & Sterne:</b> Nach jedem Level gibt es Trainingspunkte. Über 80 % Trefferquote bringt einen Stern, 100 % zwei, jede Doppel- oder Dreifachrettung einen bzw. zwei. Ist das Training voll, werden Trainingspunkte zu Sternen. Sterne tauschst du gegen Powerriegel (3 ★, 10 s doppelt so schnell), Rettungsring (5 ★, trifft immer, großer Fangbereich) oder Trillerpfeife (10 ★). Im Spiel einsetzen per Knopf oder Taste 1/2/3.</p>
     </details>
-    <details class="sec sec-green" open><summary>Bestenliste</summary><div id="menuhs"></div></details>
+    <details class="sec sec-green" open><summary>Bestenliste</summary><div id="hstabs" class="plist" style="margin:6px 0"></div><div id="menuhs"></div></details>
     <p class="credits">by Martin Kammler · <span id="appVersion"></span></p>
   </div></div>
 </div>
@@ -174,11 +186,19 @@ const CAPS=['#ffd400','#2b7bd6','#2fb34a','#e04fa0','#ff7a00','#8a4fe0','#ffffff
 
 
 // ---------- Level-Design ----------
+// Schwierigkeitsgrade: Einfach (max. 8 Personen, Strömung endet bei 6 s), Normal, Profi (schnelles Wasser)
+const crossNormal=L=>L<=20?12/(1+.07*(L-1)):1/((1+.07*19)/12+(L-20)*.07/12*.67); // L1 12 s, L20 5,2 s, L30 4,3 s
+const MODES={
+  easy:{name:'Einfach',desc:'max. 8 Personen, Strömung bis 6 s',target:L=>Math.min(8,3+Math.floor((L-1)*.5)),cross:L=>1/(1/12+(Math.min(L,30)-1)*(1/6-1/12)/29)},
+  normal:{name:'Normal',desc:'max. 10 Personen, Strömung bis 4,3 s',target:L=>Math.min(10,3+Math.floor((L-1)*.65)),cross:crossNormal},
+  pro:{name:'Profi',desc:'10 Personen, schnelles Wasser bis 3,2 s',target:L=>Math.min(10,4+Math.floor((L-1)*.8)),cross:L=>crossNormal(L)*.75}
+};
+const curMode=()=>MODES[S.mode]?S.mode:'normal';
 function levelSpec(L){
   const i=Math.min(1,(L-1)/19);
   return{
-    target:Math.min(10,3+Math.floor((L-1)*.65)), // 3 … max. 10 Personen
-    cross:L<=20?12/(1+.07*(L-1)):1/((1+.07*19)/12+(L-20)*.07/12*.67), // Sekunden über die Bildbreite (L1 12 s, L20 5,4 s, L30 ≈ 4,5 s)
+    target:MODES[curMode()].target(L),
+    cross:MODES[curMode()].cross(L),         // Sekunden über die Bildbreite
     catchR:lerp(.036,.031,i),                // Trefferkreis um den Ball (Anteil Flussbreite) – zählt, sobald er den Schwimmer berührt
     spawn:lerp(4.8,1.7,i),
     maxV:L<=3?1:L<=10?2:3,
@@ -195,7 +215,7 @@ const BOAT_COLS=['#fafafa','#d64545','#2f6fb0','#f2c14e','#3e9b5a'];
 
 // ---------- Training ----------
 const SKILLS=[
- {id:'aim',name:'Zieltraining',max:5,desc:n=>n?'Greifradius +'+n*15+' %':'Vergrößert den Greifradius um den Ball'},
+ {id:'aim',name:'Zieltraining',max:5,desc:n=>(n?'Greifradius +'+n*15+' %':'Vergrößert den Greifradius um den Ball')+(n>=5?' · Rettungsring fängt bis zu 3 Personen':n>=3?' · Rettungsring fängt 2 Personen (Stufe 5: 3)':' · ab Stufe 3 fängt der Rettungsring mehrere Personen')},
  {id:'line',name:'Leinentraining',max:5,desc:n=>n?'Einholen '+n*10+' % schneller (kürzerer Cooldown)':'Schnelleres Einholen = kürzerer Cooldown'},
  {id:'stand',name:'Standfestigkeit',max:5,desc:n=>[
     'Ball hält länger gegen die Strömung · ab Stufe 3 bringt die Leine mehrere Personen auf einmal',
@@ -219,11 +239,11 @@ const fx={
 
 // ---------- Speicherstand ----------
 const SAVE_KEY='wurfball_save_v2';
-const S={maxCleared:0,points:0,total:0,skills:{aim:0,line:0,stand:0},hs:[],stars:0,inv:{bar:0,ring:0,whistle:0}};
+const S={mode:'normal',maxCleared:0,points:0,total:0,skills:{aim:0,line:0,stand:0},hs:[],stars:0,inv:{bar:0,ring:0,whistle:0}};
 function load(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d)Object.assign(S,d,{skills:Object.assign({aim:0,line:0,stand:0},d.skills),inv:Object.assign({bar:0,ring:0,whistle:0},d.inv),stars:d.stars||0})}catch(e){}}
-const RUN_KEYS=['maxCleared','points','total','skills','stars','inv'];
+const RUN_KEYS=['maxCleared','points','total','skills','stars','inv','mode'];
 const pkey=n=>String(n||'').trim().toLowerCase();
-function snapRun(){const r={};for(const k of RUN_KEYS)r[k]=JSON.parse(JSON.stringify(S[k]));return r}
+function snapRun(){const r={};for(const k of RUN_KEYS)if(S[k]!==undefined)r[k]=JSON.parse(JSON.stringify(S[k]));return r}
 function save(){
   S.players=S.players||{};if(S.current)S.players[pkey(S.current)]=Object.assign(snapRun(),{name:S.current});
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}
@@ -231,10 +251,11 @@ function save(){
 // Bestenliste: ein Eintrag pro Name, bester Stand zählt
 const hsKey=e=>(e.done?1000:0)+e.level;
 function hsUpsert(name,lv,sc,done){
-  if(!name)return null;const k=pkey(name);S.hs=S.hs||[];const old=S.hs.find(e=>pkey(e.name)===k);
-  const e={name,level:lv,score:sc,done:!!done,date:new Date().toLocaleDateString('de-DE'),id:Date.now()};
+  if(!name)return null;const k=pkey(name),md=curMode();S.hs=S.hs||[];const old=S.hs.find(e=>pkey(e.name)===k&&(e.mode||'normal')===md);
+  const e={name,mode:md,level:lv,score:sc,done:!!done,date:new Date().toLocaleDateString('de-DE'),id:Date.now()};
   if(old){if(hsKey(e)>hsKey(old)||(hsKey(e)===hsKey(old)&&sc>old.score))Object.assign(old,e);else{save();return old.id}}else S.hs.push(e);
-  S.hs.sort((a,b)=>hsKey(b)-hsKey(a)||b.score-a.score);S.hs=S.hs.slice(0,5);save();return e.id;
+  S.hs.sort((a,b)=>hsKey(b)-hsKey(a)||b.score-a.score);
+  const keep=[];for(const m of Object.keys(MODES))keep.push(...S.hs.filter(x=>(x.mode||'normal')===m).slice(0,5));S.hs=keep;save();return e.id;
 }
 function setPlayer(name){
   name=String(name||'').trim().slice(0,16);if(!name)return false;
@@ -249,14 +270,14 @@ function setPlayer(name){
 }
 function resetRun(){Object.assign(S,{maxCleared:0,points:0,total:0,skills:{aim:0,line:0,stand:0},stars:0,inv:{bar:0,ring:0,whistle:0}});save()}
 const GOODIES=[
-  {id:'bar',img:'ic_bar',name:'Powerriegel',cost:3,desc:'Werfen und Einholen 20 Sekunden lang doppelt so schnell'},
-  {id:'ring',img:'ic_ring',name:'Rettungsring',cost:5,desc:'Wird automatisch der Person zugeworfen, die am nächsten am Abtreiben ist – trifft immer'},
+  {id:'bar',img:'ic_bar',name:'Powerriegel',cost:3,desc:'Werfen und Einholen 10 Sekunden lang doppelt so schnell'},
+  {id:'ring',img:'ic_ring',name:'Rettungsring',cost:5,desc:'Fliegt automatisch zur Person, die am nächsten am Abtreiben ist – trifft immer. Großer Fangbereich: mit Zieltraining 3 halten sich 2, mit Stufe 5 sogar 3 Personen fest'},
   {id:'whistle',img:'ic_whistle',name:'Trillerpfeife',cost:10,desc:'Ruft 10 Sekunden lang einen Helfer, der automatisch rettet'}];
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 function hsQualifies(lv,sc){const h=S.hs||[];if(h.length<5)return true;const w=h[h.length-1];return lv>w.level||(lv===w.level&&sc>w.score)}
 function hsAdd(name,lv,sc){const e={name:name||'Retter*in',level:lv,score:sc,date:new Date().toLocaleDateString('de-DE'),id:Date.now()};
   S.hs=(S.hs||[]).concat([e]).sort((a,b)=>b.level-a.level||b.score-a.score).slice(0,5);save();return e.id}
-function hsTable(hl){const h=S.hs||[];if(!h.length)return '<p class="small">Noch keine Einträge – sei die/der Erste!</p>';
+function hsTable(hl,md){md=md||curMode();const h=(S.hs||[]).filter(e=>(e.mode||'normal')===md).sort((a,b)=>hsKey(b)-hsKey(a)||b.score-a.score);if(!h.length)return '<p class="small">Noch keine Einträge im Modus „'+MODES[md].name+'“ – sei die/der Erste!</p>';
   return '<table class="hs"><tr><th>#</th><th>Name</th><th>Level</th><th>Punkte</th></tr>'+h.map((e,i)=>`<tr class="${e.id===hl?'me':''}"><td>${i+1}.</td><td>${esc(e.name)}</td><td>${e.done?'🏅 alle '+MAXL:e.level}</td><td>${e.score}</td></tr>`).join('')+'</table>'}
 load();
 
@@ -341,7 +362,7 @@ function ringUI(){goodieUI()}
 
 function startLevel(L){
   G.L=L;G.spec=levelSpec(L);G.state='play';if(G.bgi!==G.spec.bg){G.bgi=G.spec.bg;buildBg()}G.t=0;G.score=0;G.saved=0;G.lost=0;G.lives=G.spec.lives;
-  G.throws=0;G.hits=0;G.streak=0;G.best=0;G.doubles=0;G.multiStars=0;G.cuts=0;G.spawnT=1.8;G.boatT=4;G.endT=0;G.victims=[];G.boats=[];G.lostBalls=[];G.pops=[];G.ripples=[];G.rings=[];G.ringUsed=false;G.ringArmed=false;G.ringSaves=0;G.barT=0;G.helper=null;G.helpSaves=0;
+  G.throws=0;G.hits=0;G.streak=0;G.best=0;G.doubles=0;G.multiStars=0;G.cuts=0;G.spawnT=1.8;G.boatT=4;G.endT=0;G.victims=[];G.boats=[];G.lostBalls=[];G.pops=[];G.ripples=[];G.rings=[];G.ringFlash=null;G.ringUsed=false;G.ringArmed=false;G.ringSaves=0;G.barT=0;G.helper=null;G.helpSaves=0;
   G.flow=W/G.spec.cross;
   R.x=W/2;B.state='held';B.att=[];aim=null;
   show('menu',false);show('over',false);show('pov',false);gameUI(true);
@@ -432,6 +453,7 @@ function cutRope(){
 
 // ---------- Goodies ----------
 const ringR=()=>ballR()*1.7;
+const ringCatchR=()=>RH*.11*(1+.15*S.skills.aim); // großer Fangbereich des Rettungsrings
 const barF=()=>G.barT>0?.5:1;
 function armRing(){}
 function throwRing(){}
@@ -440,7 +462,7 @@ function dangerVictim(){ // wer ist am nächsten am Abtreiben (rechter Rand)?
 }
 function useGoodie(id){
   if(G.state!=='play'||paused||!S.inv[id])return;
-  if(id==='bar'){if(G.barT>0)return;G.barT=20;pop(R.x,bankY-rs()*230,'Powerriegel! Doppelt so schnell','#ffe14d')}
+  if(id==='bar'){if(G.barT>0)return;G.barT=10;pop(R.x,bankY-rs()*230,'Powerriegel! Doppelt so schnell','#ffe14d')}
   if(id==='ring'){const v=dangerVictim();if(!v){pop(R.x,bankY-rs()*230,'Gerade niemand in Gefahr','#fff');return}
     const h=hand();G.rings.push({state:'fly',v,sx:h.x,sy:h.y,tx:v.x,ty:v.y,x:h.x,y:h.y,t:0,T:.75,h:0,a:1});pop(R.x,bankY-rs()*230,'Rettungsring!','#ffe14d')}
   if(id==='whistle'){if(G.helper)return;G.helper={x:W*.2,t:10,state:'idle',cd:.5,v:null,bx:0,by:0,bt:0,bT:1,sx:0,sy:0};pop(W*.2,bankY-rs()*230,'Triiiiet! Helfer kommt!','#ffe14d')}
@@ -451,7 +473,12 @@ function updateRings(dt){
     r.t+=dt;
     if(r.state==='fly'){if(r.v&&r.v.state==='swim'){r.tx=r.v.x;r.ty=r.v.y}const p=Math.min(1,r.t/r.T);r.x=lerp(r.sx,r.tx,p);r.y=lerp(r.sy,r.ty,p);r.h=Math.sin(Math.PI*p);
       if(p>=1){r.h=0;
-        if(r.v&&r.v.state==='swim'){const v=r.v;v.state='ringed';v.t=0;r.state='gone';G.ripples.push({x:v.x,y:v.y,t:0});pop(v.x,v.y-headR()*2.5,'Hält sich fest!','#ffe14d');continue}
+        if(r.v&&r.v.state==='swim'){const v=r.v;v.state='ringed';v.t=0;r.state='gone';G.ripples.push({x:v.x,y:v.y,t:0});
+          // großer Fangbereich: weitere Personen in der Nähe greifen mit (Anzahl über Zieltraining)
+          const maxN=S.skills.aim>=5?3:S.skills.aim>=3?2:1,RC=ringCatchR();G.ringFlash={x:v.x,y:v.y,r:RC,t:0};
+          const near=G.victims.filter(o=>o.state==='swim'&&personDist(o,v.x,v.y)<RC).sort((a,b)=>personDist(a,v.x,v.y)-personDist(b,v.x,v.y)).slice(0,maxN-1);
+          for(const o of near){o.state='ringed';o.t=0;o.noRing=true}
+          pop(v.x,v.y-headR()*2.5,near.length?(near.length+1)+' halten sich fest!':'Hält sich fest!','#ffe14d');continue}
         if(r.y<topAt(r.x)||r.y>botAt(r.x)){r.state='gone';pop(r.x,r.y-14,'Ring daneben','#ffb3b3')}
         else{G.ripples.push({x:r.x,y:r.y,t:0});r.state='float';r.t=0;r.f=fracAt(r.x,r.y)}}}
     if(r.state==='float'){
@@ -527,6 +554,7 @@ function drawLifebuoy(x,y,r,sy){
   ctx.restore();
 }
 function drawRings(){
+  const f=G.ringFlash;if(f){f.t+=1/60;const a=Math.max(0,1-f.t/1.1);if(a<=0)G.ringFlash=null;else{ctx.save();ctx.globalAlpha=a;ctx.strokeStyle='#ff5a5a';ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();ctx.arc(f.x,f.y,f.r*(.85+.15*(1-a)),0,7);ctx.stroke();ctx.restore()}}
   for(const r of G.rings){const R2=ringR();ctx.globalAlpha=Math.max(0,r.a);
     if(r.state==='fly'){ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(r.x,r.y+R2*.3,R2,R2*.45,0,0,7);ctx.fill();drawLifebuoy(r.x,r.y-r.h*RH*.14,R2*(1+r.h*.4),1)}
     else drawLifebuoy(r.x,r.y,R2,.75);
@@ -603,7 +631,7 @@ function victory(){
       <div class="sec-t" style="justify-content:center;font-size:22px">Verdienstorden der Strömungsrettung</div>
       <p style="margin:6px 0">verliehen an <b style="font-size:18px">${esc(name)}</b><br>für ${MAXL} erfolgreiche Einsätze und <b>${sc} Punkte</b>.</p>
       ${rank>=0?`<p style="margin:0"><b>Platz ${rank+1} in der Bestenliste</b></p>`:''}</section>
-    <details class="sec sec-green" open><summary>Bestenliste</summary>${hsTable(id)}</details>
+    <details class="sec sec-green" open><summary>Bestenliste <span class="badge">${MODES[curMode()].name}</span></summary>${hsTable(id)}</details>
     <div class="row"><button class="btn primary" id="again">Neuer Einsatz</button><button class="btn" id="toMenu">Menü</button></div>`;
   $('again').onclick=()=>{stopConfetti();startLevel(1)};$('toMenu').onclick=()=>{stopConfetti();toMenu()};
   show('over',true);
@@ -623,31 +651,44 @@ function endRun(){
   $('overcard').innerHTML=`<div class="kl-row"><div><span class="kl-stamp">Abschlussbericht</span><h2>Einsatz beendet</h2></div></div>
     <section class="sec sec-blue"><div class="sec-t">${esc(S.current||'Retter*in')}</div>
     <p style="margin:4px 0">Erreicht: <b>Level ${lv}</b> · <b>${sc} Punkte</b>${rank>=0?` · <b>Platz ${rank+1}</b>`:''}</p></section>
-    <details class="sec sec-green" open><summary>Bestenliste</summary>${hsTable(id)}</details>
+    <details class="sec sec-green" open><summary>Bestenliste <span class="badge">${MODES[curMode()].name}</span></summary>${hsTable(id)}</details>
     <div class="row"><button class="btn primary" id="again">Neuer Einsatz</button><button class="btn" id="toMenu">Menü / Spieler wechseln</button></div>`;
   $('again').onclick=()=>startLevel(1);$('toMenu').onclick=toMenu;
 }
+let selMode='normal',hsMode=null,lastP=null;
 function menuState(){ // Knöpfe passend zum eingegebenen Namen
-  const n=$('pname').value.trim(),p=(S.players||{})[pkey(n)],mc=p?p.maxCleared:0;
-  $('cont').textContent=!n?'Name eingeben, dann los':mc?`${n}: Einsatz fortsetzen – Level ${mc+1}`:`${n}: Einsatz starten`;
-  $('cont').disabled=!n;$('newg').classList.toggle('hidden',!mc);
+  const n=$('pname').value.trim(),p=(S.players||{})[pkey(n)],mc=p?p.maxCleared:0,runMode=p&&MODES[p.mode]?p.mode:'normal';
+  if(pkey(n)!==lastP){lastP=pkey(n);if(mc)selMode=runMode}
+  const other=mc&&selMode!==runMode;
+  $('modesel').innerHTML=Object.entries(MODES).map(([k,m])=>`<button type="button" data-m="${k}" class="${k===selMode?'on':''}" >${m.name}<small>${m.desc}</small></button>`).join('')+
+    (mc?`<div class="lock">Laufender Einsatz: ${MODES[runMode].name}, Level ${mc+1}.${other?' <b>Mit „'+MODES[selMode].name+'“ startest du einen neuen Einsatz</b> – der alte Stand kommt in die Bestenliste.':''}</div>`:'');
+  $('modesel').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{selMode=b.dataset.m;hsMode=selMode;menuState();renderHs()});
+  $('cont').textContent=!n?'Name eingeben, dann los':other?`${n}: neuer Einsatz – ${MODES[selMode].name}`:mc?`${n}: Einsatz fortsetzen – Level ${mc+1}`:`${n}: Einsatz starten – ${MODES[selMode].name}`;
+  $('cont').disabled=!n;$('newg').classList.toggle('hidden',!mc||other);
   const ps=Object.values(S.players||{}).sort((a,b)=>b.maxCleared-a.maxCleared);
-  $('plist').innerHTML=ps.length?ps.map(p=>`<button type="button" class="chip ${pkey(p.name)===pkey(n)?'on':''}" data-p="${esc(p.name)}">${esc(p.name)} · ${p.maxCleared?'Level '+(p.maxCleared+1):'neu'}</button>`).join(''):'';
+  $('plist').innerHTML=ps.length?ps.map(p=>`<button type="button" class="chip ${pkey(p.name)===pkey(n)?'on':''}" data-p="${esc(p.name)}">${esc(p.name)} · ${p.maxCleared?'Level '+(p.maxCleared+1)+' · '+(MODES[p.mode]||MODES.normal).name:'neu'}</button>`).join(''):'';
   $('plist').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{$('pname').value=b.dataset.p;menuState()});
+}
+function renderHs(){
+  const md=hsMode||selMode;
+  $('hstabs').innerHTML=Object.entries(MODES).map(([k,m])=>`<button type="button" class="chip ${k===md?'on':''}" data-h="${k}">${m.name}</button>`).join('');
+  $('hstabs').querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{hsMode=b.dataset.h;renderHs()});
+  $('menuhs').innerHTML=hsTable(null,md);
 }
 function toMenu(){
   G.state='menu';if(G.bgi){G.bgi=0;buildBg()}G.victims=[];G.boats=[];G.lostBalls=[];G.rings=[];B.state='held';B.att=[];gameUI(false);show('over',false);show('pov',false);
-  $('pname').value=S.current||'';menuState();
-  $('menuhs').innerHTML=hsTable(null);
+  $('pname').value=S.current||'';selMode=curMode();hsMode=null;menuState();renderHs();
   show('menu',true);
 }
 $('pname').addEventListener('input',menuState);
 $('pf').onsubmit=e=>{e.preventDefault();$('cont').click()};
-$('cont').onclick=()=>{if(!setPlayer($('pname').value)){$('pname').focus();return}startLevel(S.maxCleared+1)};
+$('cont').onclick=()=>{if(!setPlayer($('pname').value)){$('pname').focus();return}
+  if(S.maxCleared&&curMode()!==selMode){hsUpsert(S.current,S.maxCleared+1,S.total);resetRun()}
+  if(!S.maxCleared){S.mode=selMode;save()}startLevel(S.maxCleared+1)};
 let newArmed=false;
 $('newg').onclick=()=>{if(!newArmed){newArmed=true;$('newg').textContent='Wirklich? Laufender Einsatz wird abgebrochen';setTimeout(()=>{newArmed=false;$('newg').textContent='Neuer Einsatz'},4000);return}
   newArmed=false;$('newg').textContent='Neuer Einsatz';if(!setPlayer($('pname').value))return;
-  if(S.maxCleared>0)hsUpsert(S.current,S.maxCleared+1,S.total);resetRun();startLevel(1)};
+  if(S.maxCleared>0)hsUpsert(S.current,S.maxCleared+1,S.total);resetRun();S.mode=selMode;save();startLevel(1)};
 
 // ---------- Update ----------
 function update(dt){
@@ -769,7 +810,7 @@ function drawSwimmer(v){
     ctx.drawImage(IMG['sa'+k],-a.piv[0],-a.piv[1],a.w,a.h);ctx.restore();
   }
   ctx.drawImage(IMG['ss'+v.shirt],v.x-s*g.sw/2,v.y-s*g.sh/2,s*g.sw,s*g.sh);
-  if(v.state==='ringed')drawLifebuoy(v.x,v.y+s*g.sh*.05,s*g.sw*.6,.55);
+  if(v.state==='ringed'&&!v.noRing)drawLifebuoy(v.x,v.y+s*g.sh*.05,s*g.sw*.6,.55);
   const hd=SW.heads[v.head];const hy=v.y+s*g.neckY+s*4;
   ctx.drawImage(IMG['sh'+v.head],v.x-s*hd[0]/2,hy-s*hd[1],s*hd[0],s*hd[1]);
   if(v.state==='swim'&&((t+v.ph)%2.0)<1.1){
@@ -880,8 +921,9 @@ function drawBoat(bt){
 function drawRope(){
   if(B.state==='held'||B.state==='replacing')return;
   const h=hand(),sag=G.flow*.25*(B.state==='flying'?.3:1);
-  const mx=(h.x+B.x)/2+sag,my=(h.y+B.y)/2;
-  ctx.lineCap='round';ctx.beginPath();ctx.moveTo(h.x,h.y);ctx.quadraticCurveTo(mx,my,B.x,B.y);
+  const by=B.state==='flying'?B.y-B.h*RH*.12:B.y; // im Flug hängt die Leine am hochfliegenden Ball, nicht am Schatten
+  const mx=(h.x+B.x)/2+sag,my=(h.y+by)/2+(B.state==='flying'?RH*.03*B.h:0);
+  ctx.lineCap='round';ctx.beginPath();ctx.moveTo(h.x,h.y);ctx.quadraticCurveTo(mx,my,B.x,by);
   ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=4;ctx.stroke();
   ctx.strokeStyle='#f5c400';ctx.lineWidth=2.6;ctx.stroke();
   ctx.setLineDash([2,5]);ctx.strokeStyle='#d8261c';ctx.lineWidth=1.4;ctx.stroke();ctx.setLineDash([]);
@@ -941,7 +983,7 @@ function drawHUD(){
   const fs=Math.max(13,Math.min(18,H*.026));ctx.font='700 '+fs+'px system-ui,sans-serif';ctx.textBaseline='middle';
   const y=Math.max(18,riverTop*.32);
   const pill=(x,w,align)=>{ctx.fillStyle='rgba(0,0,0,.38)';rrect(align==='r'?x-w:x,y-fs*.85,w,fs*1.7,fs*.85);ctx.fill()};
-  const t1=(S.current?S.current+'  ·  ':'')+'Level '+G.L+'/'+MAXL+'  ·  Gerettet '+G.saved+'/'+G.spec.target+'  ·  '+G.score+' P';ctx.textAlign='left';const w1=ctx.measureText(t1).width+24;
+  const t1=(S.current?S.current+'  ·  ':'')+(curMode()!=='normal'?MODES[curMode()].name+'  ·  ':'')+'Level '+G.L+'/'+MAXL+'  ·  Gerettet '+G.saved+'/'+G.spec.target+'  ·  '+G.score+' P';ctx.textAlign='left';const w1=ctx.measureText(t1).width+24;
   pill(10,w1);ctx.fillStyle='#fff';ctx.fillText(t1,22,y+1);
   const lr=fs*.5,n=G.spec.lives,lw=n*(lr*2+6)+16;pill(W-10,lw,'r');
   for(let i=0;i<n;i++){const cx=W-10-lw+14+lr+i*(lr*2+6);ctx.lineWidth=lr*.6;ctx.strokeStyle=i<G.lives?'#ff6a13':'rgba(255,255,255,.25)';ctx.beginPath();ctx.arc(cx,y,lr*.8,0,7);ctx.stroke()}
@@ -1018,7 +1060,7 @@ if(m&&m[2]==='-goodies')S.inv={bar:2,ring:2,whistle:2}; // Test: #level-12-goodi
 if(m)startLevel(Math.max(1,+m[1]));else toMenu();
 
 // ---------- Version und automatisches Update (PWA) ----------
-const APP_VERSION='1.0.0';
+const APP_VERSION='1.1.0';
 $('appVersion').textContent='Version '+APP_VERSION;
 function toast(msg,ms=3500){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,ms)}
 try{if(sessionStorage.getItem('wurfball-updated')){sessionStorage.removeItem('wurfball-updated');toast('Aktualisiert auf Version '+APP_VERSION)}}catch(e){}
