@@ -1,6 +1,6 @@
 // Service Worker für Wasserrettung.
 // Bei jeder Änderung an den Dateien VERSION hochzählen, sonst sehen installierte Apps nichts.
-const VERSION = '1.1.1';
+const VERSION = '1.2.0';
 const CACHE = 'wasserrettung-' + VERSION;
 const FONT_CACHE = 'wasserrettung-fonts';
 const FILES = [
@@ -58,6 +58,12 @@ const FILES = [
   'assets/sh7.png',
   'assets/sh8.png',
   'assets/sh9.png',
+  'assets/snd/eat.mp3',
+  'assets/snd/music.mp3',
+  'assets/snd/river1.mp3',
+  'assets/snd/river2.mp3',
+  'assets/snd/splash.mp3',
+  'assets/snd/whistle.mp3',
   'assets/ss0.png',
   'assets/ss1.png',
   'assets/ss2.png',
@@ -70,7 +76,7 @@ const FILES = [
 ];
 
 // Neue Version: alle Dateien vorab laden. Aktiv wird sie erst, wenn die Seite
-// "SKIP_WAITING" schickt (passiert automatisch im Startmenü).
+// "SKIP_WAITING" schickt (passiert automatisch im Menü).
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
 });
@@ -110,6 +116,6 @@ self.addEventListener('fetch', event => {
     event.respondWith(fetch(req).catch(() => caches.match('index.html', {cacheName: CACHE})));
     return;
   }
-  // Bilder und übrige Dateien: aus dem Cache dieser Version
+  // Bilder, Töne und übrige Dateien: aus dem Cache dieser Version
   event.respondWith(caches.match(req, {cacheName: CACHE}).then(hit => hit || fetch(req)));
 });

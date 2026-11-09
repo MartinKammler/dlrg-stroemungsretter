@@ -8,8 +8,9 @@
 >
 > Programmcode, Idee und Grafiken stammen von Martin Kammler und stehen unter der
 > [MIT-Lizenz](LICENSE); die Grafiken sind KI-generiert und enthalten kein DLRG-Material.
-> **Name, Wortmarken und Logos der DLRG** sind davon ausgenommen und bleiben bei der DLRG.
-> Das Spiel ist ein privates Projekt und kein offizielles Angebot der DLRG.
+> **Name, Wortmarken und Logos der DLRG** sind davon ausgenommen und bleiben bei der DLRG,
+> die **Audiodateien** stammen von Pixabay. Das Spiel ist ein privates Projekt und kein
+> offizielles Angebot der DLRG.
 
 Browser-Spiel für die DLRG-Jugend: Im Fluss treiben Personen vorbei und rufen um Hilfe. Mit dem Wurfball an der Leine zielen, treffen, an Land ziehen.
 
@@ -25,7 +26,7 @@ Läuft im Browser auf PC, Tablet und Handy – auch offline.
 - **iPad / iPhone (Safari):** Teilen-Knopf → „Zum Home-Bildschirm“
 - **PC (Chrome/Edge):** Installieren-Symbol in der Adressleiste
 
-Nach der Installation läuft das Spiel im Vollbild und ohne Internet.
+Nach der Installation läuft das Spiel im Vollbild und ohne Internet. Beim Installieren werden rund 6,5 MB geladen (Grafiken und Töne), danach braucht das Spiel kein Netz mehr.
 
 ### Updates
 
@@ -49,7 +50,7 @@ Die App sucht beim Öffnen und alle 30 Minuten nach einer neuen Version. Ist ein
 
 Jeder Modus hat seine eigene Bestenliste. Pro Spieler läuft ein Einsatz; wer den Modus wechselt, beendet den laufenden Einsatz (er kommt in die Bestenliste).
 
-## Training (Punkte nach jedem Level, Stufe k kostet k Punkte)
+## Training (Punkte nach jedem Level; Stufen kosten 1, 2, 3, 3, 4 Punkte – alles voll mit 39 Punkten, ca. Level 25–28)
 
 | Training | Stufen | Wirkung |
 |---|---|---|
@@ -69,6 +70,10 @@ Sterne gibt es für: über 80 % Trefferquote (1 ★), 100 % Trefferquote (2 ★)
 
 Im Spiel per Knopf oder Taste 1 / 2 / 3.
 
+## Sound
+
+Hintergrundmusik „Brandung in Aufruhr“, Flussrauschen (ruhig bzw. kräftig ab den Kurven-Leveln), Platschen beim Aufschlag, Pfeife bei der Trillerpfeife. Startet nach dem ersten Antippen (Browser-Vorgabe). Musik und Geräusche getrennt schaltbar im Menü und in der Pause, 🔊-Knopf im Spiel schaltet alles. Geräusche: Pixabay (universfield, loswin23, jonathanslattermusic).
+
 ## Test-Adressen
 
 - `index.html#level-12` – startet direkt Level 12
@@ -77,11 +82,11 @@ Im Spiel per Knopf oder Taste 1 / 2 / 3.
 
 ## Technik
 
-Eine einzige `index.html` (Canvas + Vanilla JS, keine Abhängigkeiten außer Google Font „Kalam“), Grafiken in `assets/`. Kajak-Grafiken sind vorhanden, Kajaks aktuell deaktiviert (`boats:null` in `levelSpec`).
+Eine einzige `index.html` (Canvas + Vanilla JS, keine Abhängigkeiten außer Google Font „Kalam“), Grafiken in `assets/`, Töne in `assets/snd/`. Kajak-Grafiken sind vorhanden, Kajaks aktuell deaktiviert (`boats:null` in `levelSpec`).
 
 PWA: `manifest.webmanifest`, `sw.js` (Cache + Offline-Betrieb) und `icons/`. Der Service Worker lädt beim Installieren alle Dateien aus der Liste `FILES` vor; Google-Fonts kommen in einen eigenen Cache.
 
-**Nach jeder Änderung** an Spiel oder Grafiken:
+**Nach jeder Änderung** an Spiel, Grafiken oder Tönen:
 
 1. `VERSION` in `sw.js` und `APP_VERSION` in `index.html` hochzählen (gleicher Wert)
 2. neue oder umbenannte Dateien in die Liste `FILES` in `sw.js` eintragen
@@ -110,5 +115,10 @@ es wurde kein DLRG-Material (keine Fotos, keine DLRG-Dateien, keine Logos) über
   der DLRG-Ausbildung.
 - Für eine Nutzung der DLRG-Marke – etwa in abgeleiteten Werken oder bei einer Veröffentlichung
   außerhalb der DLRG-Arbeit – sind die Rechte vorab mit der DLRG zu klären.
+
+**Audiodateien** in `assets/snd/` sind ebenfalls von der MIT-Lizenz ausgenommen: Sie stammen
+von [Pixabay](https://pixabay.com) (universfield, loswin23, jonathanslattermusic) und stehen
+unter der Pixabay Content License. Sie dürfen hier mitgeliefert und verwendet werden, aber
+nicht als eigenes Audio-Material weitergegeben oder verkauft werden.
 
 Dieses Projekt ist ein privates Hilfsmittel und kein offizielles Angebot der DLRG.

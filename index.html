@@ -56,6 +56,8 @@ table.hs td{padding:4px;border-bottom:1px solid #eef2f4}
 table.hs tr.me td{background:#fff3c4;font-weight:700}
 .hsf{display:flex;gap:8px;margin:6px 0}
 .plist{display:flex;flex-wrap:wrap;gap:6px}
+.sndrow{display:flex;gap:6px;justify-content:center;margin-top:8px}.sndrow .chip{border-color:#5a6b78;color:#5a6b78}.sndrow .chip.on{background:#5a6b78;color:#fff}
+#sndBtn{position:fixed;top:max(52px,calc(13vh + 8px));right:72px;z-index:3;background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:2px 8px;font-size:15px;cursor:pointer}
 .modesel{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .modesel button{border:2px solid #1f5fa8;background:#fff;color:#1f5fa8;border-radius:10px;padding:6px 4px;cursor:pointer;font:800 14px system-ui,sans-serif;line-height:1.15}
 .modesel button small{display:block;font-weight:500;font-size:10.5px;color:#456}
@@ -105,6 +107,7 @@ table.hs tr.me td{background:#fff3c4;font-weight:700}
 <body>
 <canvas id="c"></canvas>
 <button id="pause" class="hidden">Pause</button>
+<button id="sndBtn" class="hidden" data-snd="all" title="Ton an/aus">🔊</button>
 <div id="goodies" class="hidden">
   <button class="gd" id="gBar" title="Powerriegel (Taste 1)"><img src="assets/ic_bar.png" alt="" width="30" height="30" style="object-fit:contain"><span class="gl">Riegel</span><b class="gc">0</b></button>
   <button class="gd" id="gRing" title="Rettungsring (Taste 2)"><img src="assets/ic_ring.png" alt="" width="30" height="30" style="object-fit:contain"><span class="gl">Ring</span><b class="gc">0</b></button>
@@ -121,6 +124,7 @@ table.hs tr.me td{background:#fff3c4;font-weight:700}
         <div id="modesel" class="modesel"></div>
         <button class="btn primary" id="cont">Weiter</button>
         <button class="btn" id="newg">Neuer Einsatz</button>
+        <div class="sndrow"><button type="button" class="chip" data-snd="music">Musik</button><button type="button" class="chip" data-snd="fx">Geräusche</button></div>
       </div>
     </section>
     <details class="sec sec-gray"><summary>So geht's</summary>
@@ -140,7 +144,7 @@ table.hs tr.me td{background:#fff3c4;font-weight:700}
 <div class="overlay hidden" id="over"><div class="card"><div class="cin" id="overcard"></div></div></div>
 
 <div class="overlay hidden" id="pov">
-  <div class="card"><div class="cin" style="text-align:center"><span class="kl-stamp">Einsatz unterbrochen</span><h2>Pause</h2><div class="row"><button class="btn primary" id="resume">Weiter</button><button class="btn" id="quit">Zum Menü</button></div></div></div>
+  <div class="card"><div class="cin" style="text-align:center"><span class="kl-stamp">Einsatz unterbrochen</span><h2>Pause</h2><div class="row"><button class="btn primary" id="resume">Weiter</button><button class="btn" id="quit">Zum Menü</button></div><div class="sndrow"><button type="button" class="chip" data-snd="music">Musik</button><button type="button" class="chip" data-snd="fx">Geräusche</button></div></div></div>
 </div>
 
 <script>
@@ -225,7 +229,7 @@ const SKILLS=[
     '2 Personen pro Wurf, größerer Fangbereich an der Leine · Stufe 5: 3 Personen',
     'Bis zu 3 Personen pro Wurf, großer Fangbereich an der Leine'][n]}
 ];
-const costOf=stage=>stage; // Stufe k kostet k Punkte
+const COSTS=[0,1,2,3,3,4];const costOf=stage=>COSTS[stage]||4; // Stufen kosten 1,2,3,3,4 → 13 pro Training, 39 für alles (≈ Level 25–28 voll)
 const fx={
   catchR:()=>G.spec.catchR*(1+.15*S.skills.aim)*RH,
   pullT:()=>2.6*(1-.1*S.skills.line),
@@ -355,13 +359,56 @@ function aimCalc(dx,dy){
   return{len,ang,s,dist,tx:h.x+Math.cos(ang)*dist,ty:h.y+Math.sin(ang)*dist};
 }
 
+// ---------- Sound ----------
+const SND={ctx:null,buf:{},music:true,fx:true,mNode:null,aNode:null,aKey:null};
+try{const p=JSON.parse(localStorage.getItem('wurfball_snd')||'{}');if(p.music===false)SND.music=false;if(p.fx===false)SND.fx=false}catch(e){}
+function sndSave(){try{localStorage.setItem('wurfball_snd',JSON.stringify({music:SND.music,fx:SND.fx}))}catch(e){}}
+function sndInit(){
+  if(SND.ctx){if(SND.ctx.state==='suspended'&&!paused)SND.ctx.resume().catch(()=>{});return}
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  try{SND.ctx=new AC()}catch(e){return}
+  const mk=v=>{const g=SND.ctx.createGain();g.gain.value=v;g.connect(SND.ctx.destination);return g};
+  SND.mG=mk(0);SND.aG=mk(0);SND.fG=mk(.9);SND.duck=0;
+  for(const n of['music','river1','river2','splash','whistle','eat'])
+    fetch('assets/snd/'+n+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,no)=>SND.ctx.decodeAudioData(b,ok,no))).then(d=>{SND.buf[n]=d;sndUpdate()}).catch(()=>{});
+}
+function loopNode(n,dest,vol){const s=SND.ctx.createBufferSource();s.buffer=SND.buf[n];s.loop=true;const g=SND.ctx.createGain(),t=SND.ctx.currentTime;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+1.5);s.connect(g);g.connect(dest);s.start();return{s,g}}
+function stopNode(o){if(!o)return;try{const t=SND.ctx.currentTime;o.g.gain.cancelScheduledValues(t);o.g.gain.setValueAtTime(o.g.gain.value,t);o.g.gain.linearRampToValueAtTime(0,t+.8);o.s.stop(t+.9)}catch(e){}}
+function sndUpdate(){
+  if(!SND.ctx)return;
+  if(SND.music&&SND.buf.music&&!SND.mNode)SND.mNode=loopNode('music',SND.mG,1);
+  if(!SND.music&&SND.mNode){stopNode(SND.mNode);SND.mNode=null}
+  const key=SND.fx?(G.bgi>=2?'river1':'river2'):null;
+  if(key!==SND.aKey){stopNode(SND.aNode);SND.aNode=null;SND.aKey=null;
+    if(key&&SND.buf[key]){SND.aNode=loopNode(key,SND.aG,key==='river1'?.5:1.4);SND.aKey=key}}
+  sndUI();
+}
+// Musik & Rauschen nur im laufenden Level – bei jeder Kladde (Menü, Levelende …) ausblenden
+function sndDuck(){
+  if(!SND.ctx||!SND.mG)return;const want=G.state==='play'?1:0;if(want===SND.duck)return;SND.duck=want;
+  const t=SND.ctx.currentTime,d=want?1.2:1.5;
+  for(const[g,v]of[[SND.mG,.18],[SND.aG,1]]){g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(v*want,t+d)}
+}
+function sfx(n,vol,rate){if(!SND.ctx||!SND.fx||!SND.buf[n]||paused)return;const s=SND.ctx.createBufferSource();s.buffer=SND.buf[n];s.playbackRate.value=rate||1;
+  const g=SND.ctx.createGain();g.gain.value=vol==null?1:vol;s.connect(g);g.connect(SND.fG);s.start()}
+function splashFx(r,vol){G.ripples.push(r);sfx('splash',vol==null?.85:vol,rnd(.9,1.15))}
+function sndUI(){
+  document.querySelectorAll('[data-snd=music]').forEach(b=>{b.textContent='Musik: '+(SND.music?'an':'aus');b.classList.toggle('on',SND.music)});
+  document.querySelectorAll('[data-snd=fx]').forEach(b=>{b.textContent='Geräusche: '+(SND.fx?'an':'aus');b.classList.toggle('on',SND.fx)});
+  const m=$('sndBtn');if(m)m.textContent=(SND.music||SND.fx)?'🔊':'🔇';
+}
+function sndToggle(k){sndInit();if(k==='all'){const on=!(SND.music||SND.fx);SND.music=on;SND.fx=on}else SND[k]=!SND[k];sndSave();sndUpdate()}
+['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{sndInit();sndUpdate()},{passive:true}));
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-snd]');if(b){e.preventDefault();sndToggle(b.dataset.snd)}});
+
 // ---------- Ablauf ----------
 function show(id,on){$(id).classList.toggle('hidden',!on)}
-function gameUI(on){['pause'].forEach(id=>$(id).classList.toggle('hidden',!on));goodieUI()}
+function gameUI(on){['pause','sndBtn'].forEach(id=>$(id).classList.toggle('hidden',!on));goodieUI()}
 function ringUI(){goodieUI()}
 
 function startLevel(L){
-  G.L=L;G.spec=levelSpec(L);G.state='play';if(G.bgi!==G.spec.bg){G.bgi=G.spec.bg;buildBg()}G.t=0;G.score=0;G.saved=0;G.lost=0;G.lives=G.spec.lives;
+  G.L=L;G.spec=levelSpec(L);G.state='play';if(G.bgi!==G.spec.bg){G.bgi=G.spec.bg;buildBg()}sndUpdate();G.t=0;G.score=0;G.saved=0;G.lost=0;G.lives=G.spec.lives;
   G.throws=0;G.hits=0;G.streak=0;G.best=0;G.doubles=0;G.multiStars=0;G.cuts=0;G.spawnT=1.8;G.boatT=4;G.endT=0;G.victims=[];G.boats=[];G.lostBalls=[];G.pops=[];G.ripples=[];G.rings=[];G.ringFlash=null;G.ringUsed=false;G.ringArmed=false;G.ringSaves=0;G.barT=0;G.helper=null;G.helpSaves=0;
   G.flow=W/G.spec.cross;
   R.x=W/2;B.state='held';B.att=[];aim=null;
@@ -457,15 +504,29 @@ const ringCatchR=()=>RH*.11*(1+.15*S.skills.aim); // großer Fangbereich des Ret
 const barF=()=>G.barT>0?.5:1;
 function armRing(){}
 function throwRing(){}
-function dangerVictim(){ // wer ist am nächsten am Abtreiben (rechter Rand)?
-  let best=null;for(const v of G.victims)if(v.state==='swim'&&v.x>0&&!G.rings.some(r=>r.v===v)&&!(G.helper&&G.helper.v===v)&&(!best||v.x>best.x))best=v;return best;
+// Hat der Spieler diese Person gerade im Visier? (zielen, Ball im Flug, Ball treibt) – dann haben seine Würfe Vorrang
+function playerClaims(v){
+  const cr=fx.catchR()*2.5;
+  if(B.state==='held'&&aim){const a=aimFromPointer(aim);if(!a.cancel&&personDist(v,a.tx,a.ty)<cr)return true}
+  if(B.state==='flying'){const px=v.x+flowAt(v.x,v.f)*Math.max(0,B.T-B.t);if(personDist({...v,x:px},B.tx,B.ty)<cr)return true}
+  if(B.state==='floating'&&personDist(v,B.x,B.y)<cr)return true;
+  return false;
+}
+function dangerVictim(){ // wer ist am nächsten am Abtreiben (rechter Rand)? – ohne die Personen, die der Spieler gerade anvisiert
+  let best=null,fallback=null;
+  for(const v of G.victims){
+    if(v.state!=='swim'||v.x<=0||G.rings.some(r=>r.v===v)||(G.helper&&G.helper.v===v))continue;
+    if(playerClaims(v)){if(!fallback||v.x>fallback.x)fallback=v;continue}
+    if(!best||v.x>best.x)best=v;
+  }
+  return best||(arguments[0]==='ring'?fallback:null);
 }
 function useGoodie(id){
   if(G.state!=='play'||paused||!S.inv[id])return;
-  if(id==='bar'){if(G.barT>0)return;G.barT=10;pop(R.x,bankY-rs()*230,'Powerriegel! Doppelt so schnell','#ffe14d')}
-  if(id==='ring'){const v=dangerVictim();if(!v){pop(R.x,bankY-rs()*230,'Gerade niemand in Gefahr','#fff');return}
+  if(id==='bar'){if(G.barT>0)return;G.barT=10;sfx('eat',1);pop(R.x,bankY-rs()*230,'Powerriegel! Doppelt so schnell','#ffe14d')}
+  if(id==='ring'){const v=dangerVictim('ring');if(!v){pop(R.x,bankY-rs()*230,'Gerade niemand in Gefahr','#fff');return}
     const h=hand();G.rings.push({state:'fly',v,sx:h.x,sy:h.y,tx:v.x,ty:v.y,x:h.x,y:h.y,t:0,T:.75,h:0,a:1});pop(R.x,bankY-rs()*230,'Rettungsring!','#ffe14d')}
-  if(id==='whistle'){if(G.helper)return;G.helper={x:W*.2,t:10,state:'idle',cd:.5,v:null,bx:0,by:0,bt:0,bT:1,sx:0,sy:0};pop(W*.2,bankY-rs()*230,'Triiiiet! Helfer kommt!','#ffe14d')}
+  if(id==='whistle'){if(G.helper)return;sfx('whistle',.7);G.helper={x:W*.2,t:10,state:'idle',cd:.5,v:null,bx:0,by:0,bt:0,bT:1,sx:0,sy:0};pop(W*.2,bankY-rs()*230,'Triiiiet! Helfer kommt!','#ffe14d')}
   S.inv[id]--;save();goodieUI();
 }
 function updateRings(dt){
@@ -473,14 +534,14 @@ function updateRings(dt){
     r.t+=dt;
     if(r.state==='fly'){if(r.v&&r.v.state==='swim'){r.tx=r.v.x;r.ty=r.v.y}const p=Math.min(1,r.t/r.T);r.x=lerp(r.sx,r.tx,p);r.y=lerp(r.sy,r.ty,p);r.h=Math.sin(Math.PI*p);
       if(p>=1){r.h=0;
-        if(r.v&&r.v.state==='swim'){const v=r.v;v.state='ringed';v.t=0;r.state='gone';G.ripples.push({x:v.x,y:v.y,t:0});
+        if(r.v&&r.v.state==='swim'){const v=r.v;v.state='ringed';v.t=0;r.state='gone';splashFx({x:v.x,y:v.y,t:0});
           // großer Fangbereich: weitere Personen in der Nähe greifen mit (Anzahl über Zieltraining)
           const maxN=S.skills.aim>=5?3:S.skills.aim>=3?2:1,RC=ringCatchR();G.ringFlash={x:v.x,y:v.y,r:RC,t:0};
           const near=G.victims.filter(o=>o.state==='swim'&&personDist(o,v.x,v.y)<RC).sort((a,b)=>personDist(a,v.x,v.y)-personDist(b,v.x,v.y)).slice(0,maxN-1);
           for(const o of near){o.state='ringed';o.t=0;o.noRing=true}
           pop(v.x,v.y-headR()*2.5,near.length?(near.length+1)+' halten sich fest!':'Hält sich fest!','#ffe14d');continue}
         if(r.y<topAt(r.x)||r.y>botAt(r.x)){r.state='gone';pop(r.x,r.y-14,'Ring daneben','#ffb3b3')}
-        else{G.ripples.push({x:r.x,y:r.y,t:0});r.state='float';r.t=0;r.f=fracAt(r.x,r.y)}}}
+        else{splashFx({x:r.x,y:r.y,t:0});r.state='float';r.t=0;r.f=fracAt(r.x,r.y)}}}
     if(r.state==='float'){
       r.x+=flowAt(r.x,r.f)*.8*dt;r.y=yAt(r.x,r.f);
       let best=null,bd=1e9;for(const v of G.victims){if(v.state!=='swim')continue;const d=personDist(v,r.x,r.y);if(d<ringR()*1.25&&d<bd){bd=d;best=v}}
@@ -500,9 +561,9 @@ function updateHelper(dt){
     h.cd-=dt;if(h.cd<=0){const v=dangerVictim();if(v){h.v=v;h.state='throw';h.bt=0;h.bT=.55;h.sx=hh.x;h.sy=hh.y}else h.cd=.3}
   }else if(h.state==='throw'){
     h.bt+=dt;const p=Math.min(1,h.bt/h.bT);
-    if(h.v.state!=='swim'){h.state='idle';h.cd=.2;h.v=null;return}
+    if(h.v.state!=='swim'||(h.bt<h.bT*.8&&playerClaims(h.v))){h.state='idle';h.cd=.15;h.v=null;return} // Spieler hat Vorrang
     h.bx=lerp(h.sx,h.v.x,p);h.by=lerp(h.sy,h.v.y,p);
-    if(p>=1){h.v.state='helped';h.state='pull';h.bt=0;h.bT=1.3;h.sx=h.bx;h.sy=h.by;G.ripples.push({x:h.bx,y:h.by,t:0});pop(h.bx,h.by-headR()*2.5,'Helfer hat sie!','#ffe14d')}
+    if(p>=1){h.v.state='helped';h.state='pull';h.bt=0;h.bT=1.3;h.sx=h.bx;h.sy=h.by;splashFx({x:h.bx,y:h.by,t:0},.6);pop(h.bx,h.by-headR()*2.5,'Helfer hat sie!','#ffe14d')}
   }else if(h.state==='pull'){
     h.bt+=dt;const p=Math.min(1,h.bt/h.bT),e=ease(p),ex=h.x-rs()*110;
     h.bx=lerp(h.sx,ex,e);h.by=lerp(h.sy,botAt(ex)-headR()*.2,e);
@@ -578,7 +639,7 @@ function levelDone(){
       <span>Trefferquote</span><b>${q} % (${G.hits}/${G.throws})</b>${G.doubles?`<span>Mehrfachrettungen</span><b>${G.doubles}</b>`:''}${G.ringSaves?`<span>Ring-Rettungen</span><b>${G.ringSaves}</b>`:''}
       <span>Punkte (Level / gesamt)</span><b>${G.score} / ${S.total}</b></div></section>
       <details class="sec sec-orange" data-k="tr" ${open.tr?'open':''}><summary>Training <span class="badge">${left} ${left===1?'Punkt':'Punkte'}</span></summary>
-      <p class="small" style="margin:4px 0">${full?`<b>Training komplett!</b> Deine Punkte werden jetzt zu Sternen: <b>+${conv} ★</b>`:`+${earned} erhalten${perfect?' (inkl. Bonus „niemand abgetrieben“)':''} · Stufe k kostet k Punkte`}</p>`;
+      <p class="small" style="margin:4px 0">${full?`<b>Training komplett!</b> Deine Punkte werden jetzt zu Sternen: <b>+${conv} ★</b>`:`+${earned} erhalten${perfect?' (inkl. Bonus „niemand abgetrieben“)':''} · Stufen kosten 1, 2, 3, 3, 4 Punkte`}</p>`;
     for(const sk of SKILLS){
       const cur=S.skills[sk.id],p=pending[sk.id],nx=cur+p+1,cost=costOf(nx),can=nx<=sk.max&&cost<=left;
       let pips='';for(let i=1;i<=sk.max;i++)pips+=`<div class="pip ${i<=cur?'on':i<=cur+p?'new':''}"></div>`;
@@ -677,7 +738,7 @@ function renderHs(){
 }
 function toMenu(){
   G.state='menu';if(G.bgi){G.bgi=0;buildBg()}G.victims=[];G.boats=[];G.lostBalls=[];G.rings=[];B.state='held';B.att=[];gameUI(false);show('over',false);show('pov',false);
-  $('pname').value=S.current||'';selMode=curMode();hsMode=null;menuState();renderHs();
+  $('pname').value=S.current||'';selMode=curMode();hsMode=null;menuState();renderHs();sndUI();
   show('menu',true);
 }
 $('pname').addEventListener('input',menuState);
@@ -738,7 +799,7 @@ function update(dt){
     if(p>=1){B.h=0;
       if(G.boats.some(bt=>inBoat(bt,B.x,B.y,ballR()))){G.streak=0;pop(B.x,B.y-14,'Aufs Kajak!','#ffb3b3');startPull(false);B.noCut=true}
       else if(B.y<topAt(B.x)+2||B.y>botAt(B.x)-2){G.streak=0;pop(B.x,B.y-14,B.y<topAt(B.x)?'Zu weit!':'Zu kurz!','#ffb3b3');startPull(false)}
-      else{G.ripples.push({x:B.x,y:B.y,t:0});B.state='floating';B.t=0;B.noCut=false;B.f=fracAt(B.x,B.y);tryGrab()}
+      else{splashFx({x:B.x,y:B.y,t:0});B.state='floating';B.t=0;B.noCut=false;B.f=fracAt(B.x,B.y);tryGrab()}
     }
   }else if(B.state==='floating'){
     B.t+=dt;B.x+=flowAt(B.x,B.f)*fx.drift()*dt;B.y=yAt(B.x,B.f);
@@ -1036,7 +1097,7 @@ function draw(){
 }
 
 let last=performance.now(),paused=false;
-function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!paused)update(dt);draw();requestAnimationFrame(loop)}
+function loop(now){sndDuck();const dt=Math.min(.05,(now-last)/1000);last=now;if(!paused)update(dt);draw();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 
 // ---------- Eingabe ----------
@@ -1046,7 +1107,7 @@ cv.addEventListener('pointerup',e=>{if(!aim||e.pointerId!==aim.id)return;const a
 cv.addEventListener('pointercancel',()=>{aim=null});
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='arrowleft'||k==='a')keys.l=true;if(k==='arrowright'||k==='d')keys.r=true;if((k==='escape'||k==='p')&&G.state==='play')setPause(!paused);if(!e.repeat&&!paused&&G.state==='play'){if(k==='1')useGoodie('bar');if(k==='2')useGoodie('ring');if(k==='3')useGoodie('whistle')}});
 addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(k==='arrowleft'||k==='a')keys.l=false;if(k==='arrowright'||k==='d')keys.r=false});
-function setPause(p){paused=p;aim=null;keys.l=keys.r=false;show('pov',p)}
+function setPause(p){paused=p;aim=null;keys.l=keys.r=false;show('pov',p);if(SND.ctx){if(p)SND.ctx.suspend().catch(()=>{});else SND.ctx.resume().catch(()=>{})}}
 $('pause').onclick=()=>setPause(true);
 for(const[id,el]of[['bar','gBar'],['ring','gRing'],['whistle','gWhistle']])$(el).addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();useGoodie(id)});
 $('resume').onclick=()=>setPause(false);
@@ -1056,11 +1117,12 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.state===
 // Testhilfe: #level-7 startet direkt Level 7
 const m=/^#level-(\d+)(-held|-goodies)?$/.exec(location.hash);
 if(m&&m[2]==='-held')S.skills={aim:5,line:5,stand:5}; // Test: #level-12-held
-if(m&&m[2]==='-goodies')S.inv={bar:2,ring:2,whistle:2}; // Test: #level-12-goodies
+if(m&&m[2]==='-goodies'){S.inv={bar:10,ring:10,whistle:10};S.stars=99} // Test: #level-12-goodies
+if(m)S.points=Math.max(S.points||0,Math.round(1.5*(Math.max(1,+m[1])-1))); // Testeinstieg: Punkte wie nach durchschnittlichem Spiel bis hierher
 if(m)startLevel(Math.max(1,+m[1]));else toMenu();
 
 // ---------- Version und automatisches Update (PWA) ----------
-const APP_VERSION='1.1.1';
+const APP_VERSION='1.2.0';
 $('appVersion').textContent='Version '+APP_VERSION;
 function toast(msg,ms=3500){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,ms)}
 try{if(sessionStorage.getItem('wasserrettung-updated')){sessionStorage.removeItem('wasserrettung-updated');toast('Aktualisiert auf Version '+APP_VERSION)}}catch(e){}

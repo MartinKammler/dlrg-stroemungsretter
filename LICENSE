@@ -27,7 +27,13 @@ Diese MIT-Lizenz gilt für den Programmcode (HTML, CSS, JavaScript) und die
 Grafiken in assets/ von Martin Kammler. Die Grafiken sind KI-generiert und
 enthalten kein DLRG-Material.
 
-Nicht von dieser Lizenz erfasst sind Name, Wortmarken und Logos der Deutschen
+Nicht von dieser Lizenz erfasst sind die Audiodateien in assets/snd/. Sie
+stammen von Pixabay (universfield, loswin23, jonathanslattermusic) und stehen
+unter der Pixabay Content License: Nutzung und Weitergabe als Teil dieses
+Spiels sind erlaubt, eine Weitergabe oder ein Verkauf als eigenständiges
+Audio-Material ist es nicht.
+
+Nicht von dieser Lizenz erfasst sind ebenso Name, Wortmarken und Logos der Deutschen
 Lebens-Rettungs-Gesellschaft (DLRG). "DLRG" ist eine geschützte Marke der
 DLRG; die Rechte daran liegen ausschließlich bei der DLRG und werden durch
 diese Lizenz weder übertragen noch eingeräumt. Die Nennung im Projekt- und
@@ -39,9 +45,11 @@ Eine Nutzung der DLRG-Marke, etwa in abgeleiteten Werken oder bei einer
 Veröffentlichung außerhalb der DLRG-Arbeit, ist vorab mit der DLRG zu klären.
 
 This MIT license covers the source code and the artwork in assets/ by Martin
-Kammler; the artwork is AI-generated and contains no DLRG material. The name,
+Kammler; the artwork is AI-generated and contains no DLRG material. The audio
+files in assets/snd/ are excluded: they are from Pixabay (universfield,
+loswin23, jonathanslattermusic) under the Pixabay Content License. The name,
 word marks and logos of the Deutsche Lebens-Rettungs-Gesellschaft (DLRG) are
-excluded: "DLRG" is a registered trademark of the DLRG, all rights remain with
+also excluded: "DLRG" is a registered trademark of the DLRG, all rights remain with
 the DLRG, and no trademark rights are granted by this license. This is a
 private project and not an official DLRG product. Any use of the DLRG mark
 requires clarification with the DLRG.
