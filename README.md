@@ -52,3 +52,20 @@ Im Spiel per Knopf oder Taste 1 / 2 / 3.
 ## Technik
 
 Eine einzige `index.html` (Canvas + Vanilla JS, keine Abhängigkeiten außer Google Font „Kalam“), Grafiken in `assets/`. Kajak-Grafiken sind vorhanden, Kajaks aktuell deaktiviert (`boats:null` in `levelSpec`).
+
+## Urheberrecht und Lizenz
+
+**Programmcode** (HTML, CSS, JavaScript) und **Grafiken** in `assets/` – Autor: **Martin Kammler**, 2026.
+Lizenziert unter der [MIT-Lizenz](LICENSE). Die Grafiken sind KI-generierte Darstellungen;
+es wurde kein DLRG-Material (keine Fotos, keine DLRG-Dateien, keine Logos) übernommen.
+
+**Name, Wortmarken und Logos der DLRG** sind von der MIT-Lizenz **ausdrücklich ausgenommen**:
+
+- „DLRG“ ist eine geschützte Marke der Deutschen Lebens-Rettungs-Gesellschaft. Alle Rechte
+  daran liegen bei der DLRG und werden durch die MIT-Lizenz weder übertragen noch eingeräumt.
+- Die Nennung im Projekt- und Repository-Namen beschreibt nur den Einsatzzweck des Spiels in
+  der DLRG-Ausbildung.
+- Für eine Nutzung der DLRG-Marke – etwa in abgeleiteten Werken oder bei einer Veröffentlichung
+  außerhalb der DLRG-Arbeit – sind die Rechte vorab mit der DLRG zu klären.
+
+Dieses Projekt ist ein privates Hilfsmittel und kein offizielles Angebot der DLRG.
