@@ -13,7 +13,23 @@
 
 Browser-Spiel für die DLRG-Jugend: Im Fluss treiben Personen vorbei und rufen um Hilfe. Mit dem Wurfball an der Leine zielen, treffen, an Land ziehen.
 
-Läuft komplett im Browser (PC, Tablet, Handy) – einfach `index.html` öffnen oder über einen beliebigen Webserver ausliefern (z. B. GitHub Pages).
+## Spielen
+
+**Online spielen:** https://martinkammler.github.io/dlrg-stroemungsretter/
+
+Läuft im Browser auf PC, Tablet und Handy – auch offline.
+
+### Als App installieren
+
+- **Android / Chrome:** Seite öffnen, im Menü „App installieren“ bzw. „Zum Startbildschirm hinzufügen“
+- **iPad / iPhone (Safari):** Teilen-Knopf → „Zum Home-Bildschirm“
+- **PC (Chrome/Edge):** Installieren-Symbol in der Adressleiste
+
+Nach der Installation läuft das Spiel im Vollbild und ohne Internet.
+
+### Updates
+
+Die App sucht beim Öffnen und alle 30 Minuten nach einer neuen Version. Ist eine da, wird sie im Hintergrund geladen und aktiviert, sobald das Menü angezeigt wird – ein laufendes Level wird nie unterbrochen. Die aktuelle Version steht unten im Menü.
 
 ## Spielprinzip
 
@@ -52,6 +68,23 @@ Im Spiel per Knopf oder Taste 1 / 2 / 3.
 ## Technik
 
 Eine einzige `index.html` (Canvas + Vanilla JS, keine Abhängigkeiten außer Google Font „Kalam“), Grafiken in `assets/`. Kajak-Grafiken sind vorhanden, Kajaks aktuell deaktiviert (`boats:null` in `levelSpec`).
+
+PWA: `manifest.webmanifest`, `sw.js` (Cache + Offline-Betrieb) und `icons/`. Der Service Worker lädt beim Installieren alle Dateien aus der Liste `FILES` vor; Google-Fonts kommen in einen eigenen Cache.
+
+**Nach jeder Änderung** an Spiel oder Grafiken:
+
+1. `VERSION` in `sw.js` und `APP_VERSION` in `index.html` hochzählen (gleicher Wert)
+2. neue oder umbenannte Dateien in die Liste `FILES` in `sw.js` eintragen
+
+Ohne neue `VERSION` sehen bereits installierte Apps die Änderung nicht.
+
+Lokal testen:
+
+```
+python3 -m http.server 8000
+```
+
+→ http://localhost:8000 (Service Worker braucht `http://`, als `file://` geöffnet läuft nur das Spiel selbst)
 
 ## Urheberrecht und Lizenz
 
