@@ -1,0 +1,47 @@
+MIT License
+
+Copyright (c) 2026 Martin Kammler
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-------------------------------------------------------------------------------
+Geltungsbereich / Scope
+
+Diese MIT-Lizenz gilt für den Programmcode (HTML, CSS, JavaScript) und die
+Grafiken in assets/ von Martin Kammler. Die Grafiken sind KI-generiert und
+enthalten kein DLRG-Material.
+
+Nicht von dieser Lizenz erfasst sind Name, Wortmarken und Logos der Deutschen
+Lebens-Rettungs-Gesellschaft (DLRG). "DLRG" ist eine geschützte Marke der
+DLRG; die Rechte daran liegen ausschließlich bei der DLRG und werden durch
+diese Lizenz weder übertragen noch eingeräumt. Die Nennung im Projekt- und
+Repository-Namen beschreibt lediglich den Einsatzzweck des Spiels in der
+DLRG-Ausbildung. Dieses Projekt ist ein privates Hilfsmittel und kein
+offizielles Angebot der DLRG.
+
+Eine Nutzung der DLRG-Marke, etwa in abgeleiteten Werken oder bei einer
+Veröffentlichung außerhalb der DLRG-Arbeit, ist vorab mit der DLRG zu klären.
+
+This MIT license covers the source code and the artwork in assets/ by Martin
+Kammler; the artwork is AI-generated and contains no DLRG material. The name,
+word marks and logos of the Deutsche Lebens-Rettungs-Gesellschaft (DLRG) are
+excluded: "DLRG" is a registered trademark of the DLRG, all rights remain with
+the DLRG, and no trademark rights are granted by this license. This is a
+private project and not an official DLRG product. Any use of the DLRG mark
+requires clarification with the DLRG.
