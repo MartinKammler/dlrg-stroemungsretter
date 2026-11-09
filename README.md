@@ -1,4 +1,4 @@
-# Wurfball-Rettung – DLRG Strömungsretter
+# Wasserrettung – DLRG Strömungsretter
 
 > **Programmiert von Martin Kammler, Mitglied der DLRG.**
 >

@@ -1,8 +1,8 @@
-// Service Worker für Wurfball-Rettung.
+// Service Worker für Wasserrettung.
 // Bei jeder Änderung an den Dateien VERSION hochzählen, sonst sehen installierte Apps nichts.
-const VERSION = '1.1.0';
-const CACHE = 'wurfball-rettung-' + VERSION;
-const FONT_CACHE = 'wurfball-rettung-fonts';
+const VERSION = '1.1.1';
+const CACHE = 'wasserrettung-' + VERSION;
+const FONT_CACHE = 'wasserrettung-fonts';
 const FILES = [
   './',
   'index.html',
@@ -83,7 +83,8 @@ self.addEventListener('message', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k.startsWith('wurfball-rettung-') && k !== CACHE && k !== FONT_CACHE).map(k => caches.delete(k))))
+      // eigene alte Versionen und die Caches unter dem fruehen Namen "wurfball-rettung-" aufraeumen
+      .then(keys => Promise.all(keys.filter(k => (k.startsWith('wasserrettung-') || k.startsWith('wurfball-rettung-')) && k !== CACHE && k !== FONT_CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

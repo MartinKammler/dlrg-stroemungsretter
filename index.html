@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Wurfball-Rettung</title>
+<title>Wasserrettung</title>
 <meta name="description" content="Strömungsrettung üben: Mit dem Wurfball an der Leine treibende Personen aus dem Fluss retten.">
 <meta name="theme-color" content="#0b2a3a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Wurfball">
+<meta name="apple-mobile-web-app-title" content="Wasserrettung">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -1060,15 +1060,15 @@ if(m&&m[2]==='-goodies')S.inv={bar:2,ring:2,whistle:2}; // Test: #level-12-goodi
 if(m)startLevel(Math.max(1,+m[1]));else toMenu();
 
 // ---------- Version und automatisches Update (PWA) ----------
-const APP_VERSION='1.1.0';
+const APP_VERSION='1.1.1';
 $('appVersion').textContent='Version '+APP_VERSION;
 function toast(msg,ms=3500){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,ms)}
-try{if(sessionStorage.getItem('wurfball-updated')){sessionStorage.removeItem('wurfball-updated');toast('Aktualisiert auf Version '+APP_VERSION)}}catch(e){}
+try{if(sessionStorage.getItem('wasserrettung-updated')){sessionStorage.removeItem('wasserrettung-updated');toast('Aktualisiert auf Version '+APP_VERSION)}}catch(e){}
 let waitingSW=null,reloading=false;
 function applyUpdate(){
   // nur im Menü neu laden, damit kein laufendes Level und keine Namenseingabe verloren geht
   if(!waitingSW||G.state!=='menu')return;
-  try{sessionStorage.setItem('wurfball-updated','1')}catch(e){}
+  try{sessionStorage.setItem('wasserrettung-updated','1')}catch(e){}
   waitingSW.postMessage({type:'SKIP_WAITING'});waitingSW=null;
 }
 if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol)){
