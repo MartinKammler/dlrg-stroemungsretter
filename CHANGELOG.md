@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.3.4
+- Sobald die Kladde ins Bild kommt, blenden auch alle laufenden Geräusche aus (Trillerpfeife, Riegel-Knuspern, Platschen) – nicht nur Musik und Fluss. Auf der Kladde starten keine neuen Geräusche.
+
 ## 1.3.3
 - Dokumentation überarbeitet: README, „So geht's“ im Spiel und Test-Doku passen zum aktuellen Spiel; neue `CHANGELOG.md`.
 

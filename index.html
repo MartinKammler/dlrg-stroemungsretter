@@ -437,9 +437,10 @@ function sndUpdate(){
 function sndDuck(){
   if(!SND.ctx||!SND.mG)return;const want=G.state==='play'?1:0;if(want===SND.duck)return;SND.duck=want;
   const t=SND.ctx.currentTime,d=want?1.2:1.5;
-  for(const[g,v]of[[SND.mG,.18],[SND.aG,1]]){g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(v*want,t+d)}
+  // Kladde im Bild: Musik, Fluss UND laufende Effekte (Pfeife, Riegel, Platschen …) ausblenden
+  for(const[g,v,dd]of[[SND.mG,.18,d],[SND.aG,1,d],[SND.fG,.9,want?.15:.6]]){g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(v*want,t+dd)}
 }
-function sfx(n,vol,rate){if(!SND.ctx||!SND.fx||!SND.buf[n]||paused)return;const s=SND.ctx.createBufferSource();s.buffer=SND.buf[n];s.playbackRate.value=rate||1;
+function sfx(n,vol,rate){if(!SND.ctx||!SND.fx||!SND.buf[n]||paused||G.state!=='play')return;const s=SND.ctx.createBufferSource();s.buffer=SND.buf[n];s.playbackRate.value=rate||1;
   const g=SND.ctx.createGain();g.gain.value=vol==null?1:vol;s.connect(g);g.connect(SND.fG);s.start()}
 function splashFx(r,vol){G.ripples.push(r);sfx('splash',vol==null?.85:vol,rnd(.9,1.15))}
 function sndUI(){
@@ -1191,7 +1192,7 @@ $('quit').onclick=()=>{setPause(false);toMenu()};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.state==='play')setPause(true)});
 
 // Schnittstelle für die automatischen Tests (tests/) – nur mit ?e2e in der Adresse
-if(/[?&]e2e\b/.test(location.search))window.__WR={G,B,R,S,SND,fx,levelSpec,useGoodie,throwBall,aimCalc,aimFromPointer,hand,fracAt,topAt,botAt,personDist,missText,cleanSave,startLevel,toMenu,get paused(){return paused}};
+if(/[?&]e2e\b/.test(location.search))window.__WR={G,B,R,S,SND,sfx,fx,levelSpec,useGoodie,throwBall,aimCalc,aimFromPointer,hand,fracAt,topAt,botAt,personDist,missText,cleanSave,startLevel,toMenu,get paused(){return paused}};
 // Testhilfe: #level-7 startet direkt Level 7
 const m=/^#level-(\d+)(-held|-goodies)?$/.exec(location.hash);
 if(m&&m[2]==='-held')S.skills={aim:5,line:5,stand:5}; // Test: #level-12-held

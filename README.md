@@ -110,7 +110,7 @@ Bonussterne werden erst gutgeschrieben, wenn das Level geschafft ist (kein „Fa
 
 ## Sound
 
-- Hintergrundmusik „Brandung in Aufruhr“ und Flussrauschen (ruhig bis Level 10, kräftig ab den Kurven) – laufen nur im Level und blenden auf der Kladde (Menü, Levelende) aus
+- Hintergrundmusik „Brandung in Aufruhr“ und Flussrauschen (ruhig bis Level 10, kräftig ab den Kurven) – laufen nur im Level. Sobald die Kladde ins Bild kommt (Menü, Levelende), blenden Musik, Fluss und alle noch laufenden Geräusche (Pfeife, Knuspern, Platschen) aus; auf der Kladde starten keine neuen Geräusche
 - Platschen beim Aufschlag von Ball, Ring und Helferball
 - Pfeife beim Einsatz der Trillerpfeife, Knuspern beim Powerriegel
 
@@ -166,7 +166,7 @@ python3 -m http.server 8000
 
 ## Automatische Tests
 
-17 Playwright-Tests (Desktop und Handy-Profil) liegen in `tests/` – Details in [`tests/README.md`](tests/README.md):
+18 Playwright-Tests (Desktop und Handy-Profil) liegen in `tests/` – Details in [`tests/README.md`](tests/README.md):
 
 ```
 cd tests

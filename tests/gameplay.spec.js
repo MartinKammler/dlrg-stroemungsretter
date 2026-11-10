@@ -90,3 +90,22 @@ test('Ball vor einer Person in ihrer Bahn → wartet, Person greift zu', async (
   await page.waitForFunction(() => ['pulling', 'retrieving'].includes(window.__WR.B.state), null, { timeout: 4000 });
   expect(await page.evaluate(() => window.__WR.B.state)).toBe('pulling');
 });
+
+test('Kladde im Bild → Musik, Fluss und Effekte ausgeblendet, keine neuen Effekte', async ({ page }) => {
+  // Audio-Knoten durch Attrappen ersetzen, die das Ziel der Blende festhalten
+  await page.evaluate(() => {
+    const S = window.__WR.SND, fake = () => ({ gain: { value: 1, target: null, cancelScheduledValues() {}, setValueAtTime() {}, linearRampToValueAtTime(v) { this.target = v; } } });
+    window.__started = 0;
+    S.ctx = { currentTime: 0, state: 'running', resume: async () => {}, suspend: async () => {},
+      createBufferSource: () => ({ playbackRate: { value: 1 }, connect() {}, start() { window.__started++; } }),
+      createGain: () => Object.assign(fake(), { connect() {} }) };
+    S.mG = fake(); S.aG = fake(); S.fG = fake(); S.duck = 1; S.fx = true; S.buf.eat = {};
+  });
+  await finishLevel(page);
+  await page.waitForFunction(() => window.__WR.SND.duck === 0);
+  const t = await page.evaluate(() => { const S = window.__WR.SND; return [S.mG.gain.target, S.aG.gain.target, S.fG.gain.target]; });
+  expect(t).toEqual([0, 0, 0]);
+  // Riegel-Knabbern o. Ä. darf auf der Kladde nicht mehr starten
+  const n = await page.evaluate(() => { const W = window.__WR; const before = window.__started; W.sfx('eat', 1); return window.__started - before; });
+  expect(n).toBe(0);
+});
